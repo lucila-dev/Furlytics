@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { getPets } from "@/lib/petStorage";
-import { addIncident, type IncidentCategory } from "@/lib/incidentStorage";
+import { fetchPets } from "@/lib/petStorage";
+import { createIncident, type IncidentCategory } from "@/lib/incidentStorage";
 
 type Pet = { id: string; name: string };
 
@@ -71,7 +71,9 @@ export default function LogIncidentPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    setPets(getPets().map((p) => ({ id: p.id, name: p.name })));
+    fetchPets().then((list) => {
+      setPets(list.map((p) => ({ id: p.id, name: p.name })));
+    });
     if (preselectedPetId) setPetId((id) => id || preselectedPetId);
   }, [preselectedPetId]);
 
@@ -79,12 +81,12 @@ export default function LogIncidentPage() {
     setSymptoms((s) => ({ ...s, [key]: value }));
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setMessage("");
     setLoading(true);
     const customOther = symptoms.other ? otherSymptoms.filter((s) => s.trim()) : [];
-    const newIncident = addIncident({
+    const newIncident = await createIncident({
       petId,
       category,
       title,
@@ -94,6 +96,10 @@ export default function LogIncidentPage() {
       otherSymptoms: customOther.length ? customOther : undefined,
     });
     setLoading(false);
+    if (!newIncident) {
+      setMessage("Could not save incident. Please try again.");
+      return;
+    }
     router.push(`/incidents/${newIncident.id}/report`);
     router.refresh();
   }

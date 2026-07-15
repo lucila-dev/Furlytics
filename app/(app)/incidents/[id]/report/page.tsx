@@ -1,10 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
-import { getIncidentById, updateIncidentReport, type StoredIncident, type IncidentReport } from "@/lib/incidentStorage";
-import { getPetById } from "@/lib/petStorage";
+import {
+  fetchIncidentById,
+  saveIncidentReport,
+  type StoredIncident,
+  type IncidentReport,
+} from "@/lib/incidentStorage";
+import { fetchPetById, type StoredPet } from "@/lib/petStorage";
 import { jsPDF } from "jspdf";
 
 const VET_NEED_LABELS: Record<IncidentReport["vetNeed"], string> = {
@@ -16,17 +21,19 @@ const VET_NEED_LABELS: Record<IncidentReport["vetNeed"], string> = {
 
 export default function IncidentReportPage() {
   const params = useParams();
-  const router = useRouter();
   const id = params.id as string;
   const [incident, setIncident] = useState<StoredIncident | null>(null);
-  const [pet, setPet] = useState<ReturnType<typeof getPetById>>(null);
+  const [pet, setPet] = useState<StoredPet | null>(null);
+  const [loaded, setLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const inc = getIncidentById(id);
-    setIncident(inc ?? null);
-    if (inc) setPet(getPetById(inc.petId));
+    fetchIncidentById(id).then(async (inc) => {
+      setIncident(inc);
+      if (inc) setPet(await fetchPetById(inc.petId));
+      setLoaded(true);
+    });
   }, [id]);
 
   async function generateReport() {
@@ -48,7 +55,8 @@ export default function IncidentReportPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Analysis failed");
-      updateIncidentReport(incident.id, data as IncidentReport);
+      const saved = await saveIncidentReport(incident.id, data as IncidentReport);
+      if (!saved) throw new Error("Could not save report");
       setIncident((prev) => (prev ? { ...prev, report: data } : null));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong");
@@ -102,7 +110,8 @@ export default function IncidentReportPage() {
     doc.save(`furlytics-report-${incident.id.slice(0, 8)}.pdf`);
   }
 
-  if (incident === null) {
+  if (!loaded) return null;
+  if (!incident) {
     return (
       <div>
         <p className="text-[var(--muted)]">Incident not found.</p>

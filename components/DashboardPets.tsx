@@ -2,16 +2,13 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { getPets } from "@/lib/petStorage";
+import { fetchPets, type StoredPet } from "@/lib/petStorage";
 
 export function DashboardPets() {
-  const [pets, setPets] = useState<ReturnType<typeof getPets>>([]);
+  const [pets, setPets] = useState<StoredPet[]>([]);
 
   useEffect(() => {
-    setPets(getPets());
-    const onStorage = () => setPets(getPets());
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+    fetchPets().then(setPets);
   }, []);
 
   if (pets.length === 0) {

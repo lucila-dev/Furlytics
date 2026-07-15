@@ -3,44 +3,44 @@ import Link from "next/link";
 export default function AppHomePage() {
   return (
     <div className="space-y-16 pb-12">
-      {/* Hero — fixed height so the block length never changes with viewport */}
-      <section className="relative h-[400px] overflow-hidden rounded-[2rem] text-center sm:rounded-[2.5rem]">
+      {/* Hero — bleed to edges on mobile for a centered full-width feel */}
+      <section className="relative -mx-4 h-[min(52vh,420px)] overflow-hidden text-center sm:mx-0 sm:h-[400px] sm:rounded-[2.5rem]">
         <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: "url(/home-hero-dogs.png)" }}
+          className="absolute inset-0 bg-cover bg-[center_45%]"
+          style={{ backgroundImage: "url(/home-hero-dogs.jpg)" }}
           aria-hidden
         />
         <div
           className="absolute inset-0"
-          style={{ backgroundColor: "color-mix(in srgb, var(--background) 48%, transparent)" }}
+          style={{ backgroundColor: "color-mix(in srgb, var(--background) 55%, transparent)" }}
           aria-hidden
         />
-        <div className="relative flex h-full flex-col items-center justify-center px-6 sm:px-10">
-          <h1 className="text-3xl font-bold tracking-tight text-[var(--foreground)] sm:text-4xl md:text-5xl">
+        <div className="relative flex h-full flex-col items-center justify-center px-5 py-8 sm:px-10">
+          <h1 className="max-w-xl text-3xl font-bold tracking-tight text-[var(--foreground)] sm:text-4xl md:text-5xl">
             Welcome to{" "}
             <span className="bg-gradient-to-r from-[var(--accent)] to-[var(--secondary)] bg-clip-text text-transparent">
               Furlytics
             </span>
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-[var(--muted)]">
+          <p className="mx-auto mt-3 max-w-md text-base leading-relaxed text-[var(--foreground)]/80 sm:mt-4 sm:max-w-2xl sm:text-lg">
             Your place to track your pets’ health and behaviour, spot patterns, and go to the vet with clear summaries.
           </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+          <div className="mt-6 flex w-full max-w-sm flex-col gap-3 sm:mt-8 sm:max-w-none sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-4">
             <Link
               href="/dashboard"
-              className="rounded-xl bg-[var(--accent)] px-6 py-3 font-medium text-white shadow-md hover:bg-[var(--accent-hover)] transition-colors"
+              className="rounded-xl bg-[var(--accent)] px-6 py-3 text-center font-medium text-white shadow-md hover:bg-[var(--accent-hover)] transition-colors"
             >
               Go to Dashboard
             </Link>
             <Link
               href="/pets"
-              className="rounded-xl border-2 border-[var(--secondary)] bg-white/90 px-6 py-3 font-medium text-[var(--secondary)] hover:bg-white transition-colors"
+              className="rounded-xl border-2 border-[var(--secondary)] bg-white/95 px-6 py-3 text-center font-medium text-[var(--secondary)] hover:bg-white transition-colors"
             >
               My Pets
             </Link>
             <Link
               href="/log-incident"
-              className="rounded-xl border-2 border-[var(--border)] bg-white/90 px-6 py-3 font-medium text-[var(--foreground)] hover:border-[var(--accent)] hover:bg-white transition-colors"
+              className="rounded-xl border-2 border-[var(--border)] bg-white/95 px-6 py-3 text-center font-medium text-[var(--foreground)] hover:border-[var(--accent)] hover:bg-white transition-colors"
             >
               Log Incident
             </Link>

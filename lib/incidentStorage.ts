@@ -1,5 +1,3 @@
-const INCIDENTS_KEY = "furlytics-incidents";
-
 export type IncidentCategory = "symptom" | "behaviour" | "accident";
 
 export type IncidentReport = {
@@ -54,72 +52,89 @@ const defaultSymptoms = (): StoredIncident["symptoms"] => ({
   other: false,
 });
 
-export function getIncidents(): StoredIncident[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(INCIDENTS_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as StoredIncident[];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-export function setIncidents(incidents: StoredIncident[]): void {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(INCIDENTS_KEY, JSON.stringify(incidents));
-  } catch {
-    // ignore
-  }
-}
-
-export function addIncident(
-  incident: Omit<StoredIncident, "id"> & { symptoms?: Partial<StoredIncident["symptoms"]>; otherSymptoms?: string[] }
-): StoredIncident {
-  const id = "inc-" + Date.now() + "-" + Math.random().toString(36).slice(2, 9);
-  const symptoms = { ...defaultSymptoms(), ...(incident.symptoms ?? {}) };
-  const newIncident: StoredIncident = {
-    ...incident,
-    id,
-    symptoms,
-    otherSymptoms: incident.otherSymptoms ?? [],
+function mapIncident(raw: Record<string, unknown>): StoredIncident {
+  const fromJson = (raw.symptoms as Partial<StoredIncident["symptoms"]> | null) ?? {};
+  return {
+    id: String(raw.id),
+    petId: String(raw.petId),
+    category: raw.category as IncidentCategory,
+    title: String(raw.title),
+    description: (raw.description as string | null) ?? null,
+    timestamp:
+      typeof raw.timestamp === "string"
+        ? raw.timestamp
+        : new Date(raw.timestamp as string).toISOString(),
+    symptoms: {
+      ...defaultSymptoms(),
+      appetiteLoss: Boolean(fromJson.appetiteLoss ?? raw.appetiteLoss),
+      vomiting: Boolean(fromJson.vomiting ?? raw.vomiting),
+      lethargy: Boolean(fromJson.lethargy ?? raw.lethargy),
+      aggression: Boolean(fromJson.aggression ?? raw.aggression),
+      anxiety: Boolean(fromJson.anxiety ?? raw.anxiety),
+      diarrhea: Boolean(fromJson.diarrhea),
+      coughing: Boolean(fromJson.coughing),
+      limping: Boolean(fromJson.limping),
+      itching: Boolean(fromJson.itching),
+      excessiveThirst: Boolean(fromJson.excessiveThirst),
+      lossOfBalance: Boolean(fromJson.lossOfBalance),
+      difficultyBreathing: Boolean(fromJson.difficultyBreathing),
+      other: Boolean(fromJson.other),
+    },
+    otherSymptoms: Array.isArray(raw.otherSymptoms) ? (raw.otherSymptoms as string[]) : [],
+    report: (raw.report as IncidentReport | null) ?? null,
   };
-  const incidents = getIncidents();
-  incidents.unshift(newIncident);
-  setIncidents(incidents);
-  return newIncident;
 }
 
-export function getIncidentsByPetId(petId: string): StoredIncident[] {
-  return getIncidents()
-    .filter((i) => i.petId === petId)
-    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+export async function fetchIncidents(petId?: string): Promise<StoredIncident[]> {
+  const url = petId ? `/api/incidents?petId=${encodeURIComponent(petId)}` : "/api/incidents";
+  const res = await fetch(url);
+  if (!res.ok) return [];
+  const data = await res.json();
+  return Array.isArray(data) ? data.map(mapIncident) : [];
 }
 
-export function getIncidentById(id: string): StoredIncident | null {
-  return getIncidents().find((i) => i.id === id) ?? null;
+export async function fetchIncidentById(id: string): Promise<StoredIncident | null> {
+  const res = await fetch(`/api/incidents/${id}`);
+  if (!res.ok) return null;
+  return mapIncident(await res.json());
 }
 
-export function updateIncidentReport(id: string, report: IncidentReport): void {
-  const incidents = getIncidents();
-  const i = incidents.findIndex((inc) => inc.id === id);
-  if (i === -1) return;
-  incidents[i] = { ...incidents[i], report };
-  setIncidents(incidents);
+export async function createIncident(
+  incident: Omit<StoredIncident, "id"> & {
+    symptoms?: Partial<StoredIncident["symptoms"]>;
+    otherSymptoms?: string[];
+  }
+): Promise<StoredIncident | null> {
+  const symptoms = { ...defaultSymptoms(), ...(incident.symptoms ?? {}) };
+  const res = await fetch("/api/incidents", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      petId: incident.petId,
+      category: incident.category,
+      title: incident.title,
+      description: incident.description,
+      symptoms,
+      otherSymptoms: incident.otherSymptoms ?? [],
+      timestamp: incident.timestamp,
+    }),
+  });
+  if (!res.ok) return null;
+  return mapIncident(await res.json());
 }
 
-/** Incidents that have an AI report */
-export function getIncidentsWithReports(): StoredIncident[] {
-  return getIncidents()
-    .filter((i) => i.report)
-    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+export async function saveIncidentReport(id: string, report: IncidentReport): Promise<boolean> {
+  const res = await fetch("/api/incidents", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id, report }),
+  });
+  return res.ok;
 }
 
-/** Simple pattern: symptom counts in last 14 days */
-export function getPatternsFromIncidents(): { symptom: string; count: number; label: string }[] {
-  const incidents = getIncidents();
+export function getPatternsFromIncidents(
+  incidents: StoredIncident[]
+): { symptom: string; count: number; label: string }[] {
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - 14);
   const recent = incidents.filter((i) => new Date(i.timestamp) >= cutoff);
@@ -154,9 +169,9 @@ export function getPatternsFromIncidents(): { symptom: string; count: number; la
     .sort((a, b) => b.count - a.count);
 }
 
-/** Last 6 weeks, symptoms per week for heatmap */
-export function getHeatmapFromIncidents(): { weekStart: string; symptoms: Record<string, number> }[] {
-  const incidents = getIncidents();
+export function getHeatmapFromIncidents(
+  incidents: StoredIncident[]
+): { weekStart: string; symptoms: Record<string, number> }[] {
   const now = new Date();
   const weeks: { weekStart: string; symptoms: Record<string, number> }[] = [];
   const symptomKeys = [

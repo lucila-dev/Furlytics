@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { addPet } from "@/lib/petStorage";
+import { createPet } from "@/lib/petStorage";
 import {
   ANIMAL_OPTIONS,
   getBreedOptions,
@@ -24,6 +24,7 @@ export default function NewPetPage() {
   const [vaccinated, setVaccinated] = useState(false);
   const [lastVaccinationDate, setLastVaccinationDate] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const breedOptions = getBreedOptions(animalType);
 
@@ -33,12 +34,13 @@ export default function NewPetPage() {
     setBreedOther("");
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError("");
     setLoading(true);
     const resolvedAnimalType =
       animalType === "Other" ? animalTypeOther.trim() || null : animalType || null;
-    addPet({
+    const pet = await createPet({
       name,
       animalType: resolvedAnimalType,
       breed: resolveBreed(breed, breedOther),
@@ -50,6 +52,10 @@ export default function NewPetPage() {
       lastVaccinationDate: lastVaccinationDate || null,
     });
     setLoading(false);
+    if (!pet) {
+      setError("Could not save pet. Please try again.");
+      return;
+    }
     router.push("/pets");
     router.refresh();
   }
@@ -61,6 +67,9 @@ export default function NewPetPage() {
       </Link>
       <h1 className="mt-2 text-2xl font-semibold text-[var(--foreground)]">Add pet</h1>
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        {error && (
+          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+        )}
         <div>
           <label className="block text-sm font-medium text-[var(--foreground)]">Name *</label>
           <input

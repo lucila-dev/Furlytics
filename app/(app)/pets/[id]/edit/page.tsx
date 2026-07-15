@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { getPetById, updatePet } from "@/lib/petStorage";
+import { fetchPetById, patchPet, type StoredPet } from "@/lib/petStorage";
 import {
   ANIMAL_OPTIONS,
   getBreedOptions,
@@ -15,7 +15,7 @@ export default function EditPetPage() {
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
-  const [pet, setPet] = useState<ReturnType<typeof getPetById>>(null);
+  const [pet, setPet] = useState<StoredPet | null>(null);
   const [name, setName] = useState("");
   const [animalType, setAnimalType] = useState("");
   const [animalTypeOther, setAnimalTypeOther] = useState("");
@@ -28,31 +28,33 @@ export default function EditPetPage() {
   const [vaccinated, setVaccinated] = useState(false);
   const [lastVaccinationDate, setLastVaccinationDate] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const breedOptions = getBreedOptions(animalType);
 
   useEffect(() => {
-    const p = getPetById(id);
-    setPet(p ?? null);
-    if (p) {
-      setName(p.name);
-      const knownTypes = ANIMAL_OPTIONS.filter((o) => o !== "Other");
-      const isOtherAnimal = Boolean(
-        p.animalType && !(knownTypes as readonly string[]).includes(p.animalType)
-      );
-      const typeForBreeds = isOtherAnimal ? "Other" : p.animalType ?? "";
-      setAnimalType(isOtherAnimal ? "Other" : typeForBreeds);
-      setAnimalTypeOther(isOtherAnimal && p.animalType ? p.animalType : "");
-      const { selected, custom } = splitBreed(typeForBreeds, p.breed);
-      setBreed(selected);
-      setBreedOther(custom);
-      setAge(p.age != null ? String(p.age) : "");
-      setWeight(p.weight != null ? String(p.weight) : "");
-      setKnownConditions(p.knownConditions ?? "");
-      setMicrochipNumber(p.microchipNumber ?? "");
-      setVaccinated(p.vaccinated);
-      setLastVaccinationDate(p.lastVaccinationDate ?? "");
-    }
+    fetchPetById(id).then((p) => {
+      setPet(p);
+      if (p) {
+        setName(p.name);
+        const knownTypes = ANIMAL_OPTIONS.filter((o) => o !== "Other");
+        const isOtherAnimal = Boolean(
+          p.animalType && !(knownTypes as readonly string[]).includes(p.animalType)
+        );
+        const typeForBreeds = isOtherAnimal ? "Other" : p.animalType ?? "";
+        setAnimalType(isOtherAnimal ? "Other" : typeForBreeds);
+        setAnimalTypeOther(isOtherAnimal && p.animalType ? p.animalType : "");
+        const { selected, custom } = splitBreed(typeForBreeds, p.breed);
+        setBreed(selected);
+        setBreedOther(custom);
+        setAge(p.age != null ? String(p.age) : "");
+        setWeight(p.weight != null ? String(p.weight) : "");
+        setKnownConditions(p.knownConditions ?? "");
+        setMicrochipNumber(p.microchipNumber ?? "");
+        setVaccinated(p.vaccinated);
+        setLastVaccinationDate(p.lastVaccinationDate ?? "");
+      }
+    });
   }, [id]);
 
   function handleAnimalTypeChange(value: string) {
@@ -61,13 +63,14 @@ export default function EditPetPage() {
     setBreedOther("");
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!pet) return;
+    setError("");
     setLoading(true);
     const resolvedAnimalType =
       animalType === "Other" ? animalTypeOther.trim() || null : animalType || null;
-    updatePet(pet.id, {
+    const updated = await patchPet(pet.id, {
       name,
       animalType: resolvedAnimalType,
       breed: resolveBreed(breed, breedOther),
@@ -79,6 +82,10 @@ export default function EditPetPage() {
       lastVaccinationDate: lastVaccinationDate || null,
     });
     setLoading(false);
+    if (!updated) {
+      setError("Could not save changes. Please try again.");
+      return;
+    }
     router.push(`/pets/${pet.id}`);
     router.refresh();
   }
@@ -102,6 +109,9 @@ export default function EditPetPage() {
       </Link>
       <h1 className="mt-2 text-2xl font-semibold text-[var(--foreground)]">Edit pet</h1>
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        {error && (
+          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+        )}
         <div>
           <label className="block text-sm font-medium text-[var(--foreground)]">Name *</label>
           <input

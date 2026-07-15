@@ -2,17 +2,18 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { getIncidentsWithReports } from "@/lib/incidentStorage";
-import { getPets } from "@/lib/petStorage";
+import { fetchIncidents, type StoredIncident } from "@/lib/incidentStorage";
+import { fetchPets } from "@/lib/petStorage";
 
 export function DashboardRecentReports() {
-  const [incidents, setIncidents] = useState<ReturnType<typeof getIncidentsWithReports>>([]);
+  const [incidents, setIncidents] = useState<StoredIncident[]>([]);
   const [petNames, setPetNames] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    setIncidents(getIncidentsWithReports());
-    const pets = getPets();
-    setPetNames(Object.fromEntries(pets.map((p) => [p.id, p.name])));
+    Promise.all([fetchIncidents(), fetchPets()]).then(([incs, pets]) => {
+      setIncidents(incs.filter((i) => i.report));
+      setPetNames(Object.fromEntries(pets.map((p) => [p.id, p.name])));
+    });
   }, []);
 
   const recent = incidents.slice(0, 8);

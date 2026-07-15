@@ -3,31 +3,35 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { getPetById, deletePet } from "@/lib/petStorage";
+import { fetchPetById, removePet, type StoredPet } from "@/lib/petStorage";
 
 export default function PetDetailPage() {
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
-  const [pet, setPet] = useState<ReturnType<typeof getPetById>>(null);
+  const [pet, setPet] = useState<StoredPet | null | undefined>(undefined);
   const [confirmRemove, setConfirmRemove] = useState(false);
 
   useEffect(() => {
-    setPet(getPetById(id));
+    fetchPetById(id).then(setPet);
   }, [id]);
 
-  function handleRemove() {
+  async function handleRemove() {
     if (!pet) return;
     if (!confirmRemove) {
       setConfirmRemove(true);
       return;
     }
-    deletePet(pet.id);
-    router.push("/pets");
-    router.refresh();
+    const ok = await removePet(pet.id);
+    if (ok) {
+      router.push("/pets");
+      router.refresh();
+    }
   }
 
-  if (pet === null) return null;
+  if (pet === undefined) {
+    return <p className="text-[var(--muted)]">Loading…</p>;
+  }
   if (!pet) {
     return (
       <div>

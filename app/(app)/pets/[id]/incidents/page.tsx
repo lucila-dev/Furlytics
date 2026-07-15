@@ -3,21 +3,25 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { getPetById } from "@/lib/petStorage";
-import { getIncidentsByPetId } from "@/lib/incidentStorage";
+import { fetchPetById, type StoredPet } from "@/lib/petStorage";
+import { fetchIncidents, type StoredIncident } from "@/lib/incidentStorage";
 
 export default function PetIncidentsPage() {
   const params = useParams();
   const petId = params.id as string;
-  const [pet, setPet] = useState<ReturnType<typeof getPetById>>(null);
-  const [incidents, setIncidents] = useState<ReturnType<typeof getIncidentsByPetId>>([]);
+  const [pet, setPet] = useState<StoredPet | null>(null);
+  const [incidents, setIncidents] = useState<StoredIncident[]>([]);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    setPet(getPetById(petId));
-    setIncidents(getIncidentsByPetId(petId));
+    Promise.all([fetchPetById(petId), fetchIncidents(petId)]).then(([p, incs]) => {
+      setPet(p);
+      setIncidents(incs);
+      setLoaded(true);
+    });
   }, [petId]);
 
-  if (pet === null) return null;
+  if (!loaded) return null;
   if (!pet) {
     return (
       <div>

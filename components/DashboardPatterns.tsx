@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getPatternsFromIncidents } from "@/lib/incidentStorage";
+import { fetchIncidents, getPatternsFromIncidents } from "@/lib/incidentStorage";
 
 export function DashboardPatterns() {
-  const [patterns, setPatterns] = useState<ReturnType<typeof getPatternsFromIncidents>>([]);
+  const [patterns, setPatterns] = useState<
+    ReturnType<typeof getPatternsFromIncidents>
+  >([]);
 
   useEffect(() => {
-    setPatterns(getPatternsFromIncidents());
+    fetchIncidents().then((incs) => setPatterns(getPatternsFromIncidents(incs)));
   }, []);
 
   if (patterns.length === 0) return null;
