@@ -22,7 +22,7 @@ export default async function HomePage() {
             title={
               <>
                 Welcome to{" "}
-                <span className="bg-gradient-to-r from-[var(--accent)] to-[var(--secondary)] bg-clip-text text-transparent">
+                <span className="text-[var(--accent)] [text-shadow:0_1px_0_rgba(255,255,255,0.95),0_2px_8px_rgba(255,255,255,0.75)]">
                   Furlytics
                 </span>
               </>
