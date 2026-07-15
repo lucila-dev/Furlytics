@@ -3,11 +3,14 @@ import Link from "next/link";
 export default function AppHomePage() {
   return (
     <div className="space-y-16 pb-12">
-      {/* Hero for logged-in users */}
+      {/* Hero for logged-in users — photo uses fixed size so viewport resize doesn’t re-crop it */}
       <section className="relative overflow-hidden rounded-[2rem] text-center sm:rounded-[2.5rem]">
         <div
-          className="absolute inset-0 scale-105 bg-cover bg-[center_42%]"
-          style={{ backgroundImage: "url(/home-hero-dogs.png)" }}
+          className="absolute inset-0 bg-no-repeat bg-center"
+          style={{
+            backgroundImage: "url(/home-hero-dogs.png)",
+            backgroundSize: "800px auto",
+          }}
           aria-hidden
         />
         <div
@@ -15,7 +18,7 @@ export default function AppHomePage() {
           style={{ backgroundColor: "color-mix(in srgb, var(--background) 48%, transparent)" }}
           aria-hidden
         />
-        <div className="relative px-6 py-20 sm:px-10 sm:py-24">
+        <div className="relative flex min-h-[340px] flex-col items-center justify-center px-6 py-20 sm:min-h-[380px] sm:px-10 sm:py-24">
           <h1 className="text-3xl font-bold tracking-tight text-[var(--foreground)] sm:text-4xl md:text-5xl">
             Welcome to{" "}
             <span className="bg-gradient-to-r from-[var(--accent)] to-[var(--secondary)] bg-clip-text text-transparent">
