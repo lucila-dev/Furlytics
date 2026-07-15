@@ -4,7 +4,7 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { authClient } from "@/lib/auth/client";
-import { friendlyAuthError } from "@/lib/authOrigin";
+import { friendlyAuthError, PRODUCTION_ORIGIN } from "@/lib/authOrigin";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -245,7 +245,17 @@ function LoginForm() {
       <p className="mt-1 text-sm text-[var(--muted)]">Furlytics – Pet Behaviour & Health</p>
       <form onSubmit={handleSignIn} className="mt-6 space-y-4">
         {error && (
-          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+          <div className="space-y-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+            <p>{error}</p>
+            {/origin/i.test(error) && (
+              <a
+                href={PRODUCTION_ORIGIN + "/login"}
+                className="inline-flex font-semibold underline"
+              >
+                Open the real login page →
+              </a>
+            )}
+          </div>
         )}
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-[var(--foreground)]">

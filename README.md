@@ -54,8 +54,11 @@ Pet Behaviour & Health Intelligence Platform. Log incidents, detect patterns, ge
 
 1. Connect the repo to Vercel.
 2. Set environment variables: `DATABASE_URL`, `NEON_AUTH_BASE_URL`, `NEON_AUTH_COOKIE_SECRET`, `OPENAI_API_KEY`.
-3. Add your production domain in Neon Auth trusted domains.
-4. Build command: `npx prisma generate && next build`
+3. In **Neon → Auth → Configuration → Domains**, add both (with `https://`, no trailing slash):
+   - `https://furlytics.vercel.app`
+   - `https://furlytics-kappa.vercel.app`
+4. Always open the app at [https://furlytics.vercel.app](https://furlytics.vercel.app) (not preview/hash URLs — those redirect automatically).
+5. Build runs `prisma migrate deploy`, then `prisma generate`, then `next build`.
 
 ## Features
 
