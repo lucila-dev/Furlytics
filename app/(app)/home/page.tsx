@@ -4,16 +4,15 @@ export default function AppHomePage() {
   return (
     <div className="space-y-16 pb-12">
       {/* Hero for logged-in users */}
-      <section className="relative -mx-4 overflow-hidden text-center sm:-mx-6">
+      <section className="relative overflow-hidden rounded-3xl text-center">
         <div
           className="absolute inset-0 bg-cover bg-[center_40%]"
           style={{ backgroundImage: "url(/home-hero-dogs.png)" }}
           aria-hidden
         />
-        {/* Soft wash for text — same tint as page, not white edges */}
         <div
           className="absolute inset-0"
-          style={{ backgroundColor: "color-mix(in srgb, var(--background) 55%, transparent)" }}
+          style={{ backgroundColor: "color-mix(in srgb, var(--background) 50%, transparent)" }}
           aria-hidden
         />
         <div className="relative px-6 py-20 sm:px-10 sm:py-24">
