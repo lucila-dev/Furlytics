@@ -3,22 +3,22 @@ import Link from "next/link";
 export default function AppHomePage() {
   return (
     <div className="space-y-16 pb-12">
-      {/* Hero — mobile shows the full photo (all animals); desktop keeps overlay layout */}
-      <section className="sm:relative sm:h-[400px] sm:overflow-hidden sm:rounded-[2.5rem] sm:text-center">
-        <div className="-mx-4 overflow-hidden sm:absolute sm:inset-0 sm:mx-0">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/home-hero-dogs.jpg"
-            alt="Three puppies and a duckling on the grass"
-            className="block h-auto w-full object-contain object-center sm:h-full sm:object-cover sm:object-[center_45%]"
-          />
-        </div>
+      {/* Hero — photo behind copy; contain on mobile so all animals stay in frame */}
+      <section className="relative -mx-4 overflow-hidden text-center sm:mx-0 sm:h-[400px] sm:rounded-[2.5rem]">
+        <div className="absolute inset-0 bg-[var(--background)]" aria-hidden />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/home-hero-dogs.jpg"
+          alt=""
+          className="absolute inset-0 h-full w-full object-contain object-center sm:object-cover sm:object-[center_45%]"
+          aria-hidden
+        />
         <div
-          className="pointer-events-none absolute inset-0 hidden sm:block"
+          className="absolute inset-0"
           style={{ backgroundColor: "color-mix(in srgb, var(--background) 55%, transparent)" }}
           aria-hidden
         />
-        <div className="relative flex flex-col items-center px-5 py-8 text-center sm:h-full sm:justify-center sm:px-10">
+        <div className="relative flex min-h-[min(52vh,420px)] flex-col items-center justify-center px-5 py-10 sm:h-full sm:min-h-0 sm:px-10 sm:py-8">
           <h1 className="max-w-xl text-3xl font-bold tracking-tight text-[var(--foreground)] sm:text-4xl md:text-5xl">
             Welcome to{" "}
             <span className="bg-gradient-to-r from-[var(--accent)] to-[var(--secondary)] bg-clip-text text-transparent">
