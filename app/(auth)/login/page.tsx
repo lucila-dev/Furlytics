@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
@@ -24,11 +24,21 @@ function LoginForm() {
         password,
         redirect: false,
       });
-      if (res?.error) {
+
+      // Require an explicit success — never treat undefined/failed responses as logged in
+      if (!res || res.ok !== true || res.error) {
         setError("Invalid email or password");
         setLoading(false);
         return;
       }
+
+      const session = await getSession();
+      if (!session?.user) {
+        setError("Invalid email or password");
+        setLoading(false);
+        return;
+      }
+
       router.push(callbackUrl);
       router.refresh();
     } catch {

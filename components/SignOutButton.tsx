@@ -1,14 +1,15 @@
 "use client";
 
-import Link from "next/link";
+import { signOut } from "next-auth/react";
 
 export function SignOutButton() {
   return (
-    <Link
-      href="/"
+    <button
+      type="button"
+      onClick={() => signOut({ callbackUrl: "/login" })}
       className="text-sm text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
     >
       Sign out
-    </Link>
+    </button>
   );
 }

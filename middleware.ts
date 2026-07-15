@@ -1,4 +1,13 @@
-export { default } from "next-auth/middleware";
+import { withAuth } from "next-auth/middleware";
+
+export default withAuth({
+  callbacks: {
+    authorized: ({ token }) => Boolean(token?.email || token?.sub),
+  },
+  pages: {
+    signIn: "/login",
+  },
+});
 
 export const config = {
   matcher: [
