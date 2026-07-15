@@ -42,14 +42,23 @@ function LoginForm() {
       if (signInError) {
         const msg = signInError.message || "Invalid email or password";
         if (/verif/i.test(msg)) {
-          const otpRes = await authClient.emailOtp.sendVerificationOtp({
+          const resend = await authClient.sendVerificationEmail({
             email: normalizedEmail,
-            type: "email-verification",
+            callbackURL:
+              typeof window !== "undefined"
+                ? `${window.location.origin}/login`
+                : "/login",
           });
-          if (otpRes.error) {
-            setError(otpRes.error.message || msg);
-            setLoading(false);
-            return;
+          if (resend.error) {
+            const otpRes = await authClient.emailOtp.sendVerificationOtp({
+              email: normalizedEmail,
+              type: "email-verification",
+            });
+            if (otpRes.error) {
+              setError(otpRes.error.message || resend.error.message || msg);
+              setLoading(false);
+              return;
+            }
           }
           setMessage("Verify your email to continue. Enter the code we sent you.");
           setStep("verify");
@@ -62,14 +71,27 @@ function LoginForm() {
       }
 
       if (data?.user && !data.user.emailVerified) {
-        const otpRes = await authClient.emailOtp.sendVerificationOtp({
+        const resend = await authClient.sendVerificationEmail({
           email: normalizedEmail,
-          type: "email-verification",
+          callbackURL:
+            typeof window !== "undefined"
+              ? `${window.location.origin}/login`
+              : "/login",
         });
-        if (otpRes.error) {
-          setError(otpRes.error.message || "Could not send verification code.");
-          setLoading(false);
-          return;
+        if (resend.error) {
+          const otpRes = await authClient.emailOtp.sendVerificationOtp({
+            email: normalizedEmail,
+            type: "email-verification",
+          });
+          if (otpRes.error) {
+            setError(
+              otpRes.error.message ||
+                resend.error.message ||
+                "Could not send verification code."
+            );
+            setLoading(false);
+            return;
+          }
         }
         setMessage("Check your email for a verification code.");
         setStep("verify");
@@ -79,20 +101,29 @@ function LoginForm() {
 
       if (await enterApp()) return;
 
-      const otpRes = await authClient.emailOtp.sendVerificationOtp({
+      const resend = await authClient.sendVerificationEmail({
         email: normalizedEmail,
-        type: "email-verification",
+        callbackURL:
+          typeof window !== "undefined"
+            ? `${window.location.origin}/login`
+            : "/login",
       });
-      if (otpRes.error) {
-        setError(otpRes.error.message || "Could not send verification code.");
-        setLoading(false);
-        return;
+      if (resend.error) {
+        const otpRes = await authClient.emailOtp.sendVerificationOtp({
+          email: normalizedEmail,
+          type: "email-verification",
+        });
+        if (otpRes.error) {
+          setError(otpRes.error.message || "Could not send verification code.");
+          setLoading(false);
+          return;
+        }
       }
       setMessage("Check your email for a verification code.");
       setStep("verify");
       setLoading(false);
-    } catch {
-      setError("Sign in failed. Please try again.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Sign in failed. Please try again.");
       setLoading(false);
     }
   }
@@ -104,7 +135,7 @@ function LoginForm() {
     setLoading(true);
     const normalizedEmail = email.trim().toLowerCase();
     try {
-      const { error: verifyError } = await authClient.emailOtp.verifyEmail({
+      const { data, error: verifyError } = await authClient.emailOtp.verifyEmail({
         email: normalizedEmail,
         otp: code.trim(),
       });
@@ -114,26 +145,28 @@ function LoginForm() {
         return;
       }
 
-      if (await enterApp()) return;
+      if (data?.user?.emailVerified || data?.status) {
+        if (await enterApp()) return;
 
-      const { error: signInError } = await authClient.signIn.email({
-        email: normalizedEmail,
-        password,
-      });
-      if (signInError) {
-        setError("Email verified. Please sign in with your password.");
-        setStep("auth");
-        setLoading(false);
-        return;
+        const { error: signInError } = await authClient.signIn.email({
+          email: normalizedEmail,
+          password,
+        });
+        if (signInError) {
+          setError(signInError.message || "Email verified. Please sign in with your password.");
+          setStep("auth");
+          setLoading(false);
+          return;
+        }
+
+        if (await enterApp()) return;
       }
-
-      if (await enterApp()) return;
 
       setError("Email verified, but sign in failed. Try signing in again.");
       setStep("auth");
       setLoading(false);
-    } catch {
-      setError("Verification failed. Please try again.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Verification failed. Please try again.");
       setLoading(false);
     }
   }

@@ -34,27 +34,15 @@ export default function RegisterPage() {
         return;
       }
 
-      // Always require email verification before entering the app
       if (data?.user?.emailVerified) {
         router.push("/dashboard");
         router.refresh();
         return;
       }
 
-      // Ask Neon to send a verification OTP (in case it wasn't sent on sign-up)
-      const otpRes = await authClient.emailOtp.sendVerificationOtp({
-        email: normalizedEmail,
-        type: "email-verification",
-      });
-      if (otpRes.error) {
-        setError(
-          otpRes.error.message ||
-            "Account created, but we couldn’t send a verification code. Check Neon Auth settings (Require email verification + Verification code)."
-        );
-        setLoading(false);
-        return;
-      }
-
+      // Neon already emails the verification code on sign-up —
+      // do not send another OTP (that would invalidate the first code).
+      setEmail(normalizedEmail);
       setMessage("Check your email for a verification code.");
       setStep("verify");
       setLoading(false);
@@ -70,66 +58,100 @@ export default function RegisterPage() {
     }
   }
 
+  async function enterApp(normalizedEmail: string) {
+    const session = await authClient.getSession();
+    if (session.data?.user?.emailVerified) {
+      router.push("/dashboard");
+      router.refresh();
+      return true;
+    }
+
+    const { error: signInError } = await authClient.signIn.email({
+      email: normalizedEmail,
+      password,
+    });
+    if (signInError) {
+      setError(signInError.message || "Email verified. Please sign in.");
+      setLoading(false);
+      return false;
+    }
+
+    router.push("/dashboard");
+    router.refresh();
+    return true;
+  }
+
   async function handleVerify(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setMessage("");
     setLoading(true);
+    const normalizedEmail = email.trim().toLowerCase();
     try {
       const { data, error: verifyError } = await authClient.emailOtp.verifyEmail({
-        email: email.trim().toLowerCase(),
+        email: normalizedEmail,
         otp: code.trim(),
       });
+
       if (verifyError) {
         setError(verifyError.message || "Invalid verification code");
         setLoading(false);
         return;
       }
 
-      const session = await authClient.getSession();
-      if (session.data?.user?.emailVerified || data?.user?.emailVerified) {
-        if (!session.data?.user?.emailVerified) {
-          const { error: signInError } = await authClient.signIn.email({
-            email: email.trim().toLowerCase(),
-            password,
-          });
-          if (signInError) {
-            setError("Email verified. Please sign in.");
-            setLoading(false);
-            router.push("/login");
-            return;
-          }
-        }
-        router.push("/dashboard");
-        router.refresh();
+      if (data?.user?.emailVerified || data?.status) {
+        await enterApp(normalizedEmail);
         return;
       }
 
       setMessage("Email verified! Sign in to continue.");
       setLoading(false);
       router.push("/login");
-    } catch {
-      setError("Verification failed. Please try again.");
+    } catch (err) {
+      const detail =
+        err instanceof Error
+          ? err.message
+          : typeof err === "string"
+            ? err
+            : "Verification failed. Please try again.";
+      setError(detail);
       setLoading(false);
     }
   }
 
   async function handleResend() {
     setError("");
+    setMessage("");
     setLoading(true);
+    const normalizedEmail = email.trim().toLowerCase();
     try {
-      const otpRes = await authClient.emailOtp.sendVerificationOtp({
-        email: email.trim().toLowerCase(),
-        type: "email-verification",
+      // Prefer Console-configured verification email (code or link)
+      const resend = await authClient.sendVerificationEmail({
+        email: normalizedEmail,
+        callbackURL:
+          typeof window !== "undefined"
+            ? `${window.location.origin}/login`
+            : "/login",
       });
-      if (otpRes.error) {
-        setError(otpRes.error.message || "Could not resend code");
-        setLoading(false);
-        return;
+      if (resend.error) {
+        const otpRes = await authClient.emailOtp.sendVerificationOtp({
+          email: normalizedEmail,
+          type: "email-verification",
+        });
+        if (otpRes.error) {
+          setError(
+            otpRes.error.message ||
+              resend.error.message ||
+              "Could not resend code"
+          );
+          setLoading(false);
+          return;
+        }
       }
-      setMessage("Verification code sent. Check your inbox.");
-    } catch {
-      setError("Could not resend code.");
+      setCode("");
+      setMessage("New code sent. Use the latest email (ignore older codes).");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not resend code.");
     }
     setLoading(false);
   }
