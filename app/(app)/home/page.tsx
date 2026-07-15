@@ -4,35 +4,46 @@ export default function AppHomePage() {
   return (
     <div className="space-y-16 pb-12">
       {/* Hero for logged-in users */}
-      <section className="text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-[var(--foreground)] sm:text-4xl md:text-5xl">
-          Welcome to{" "}
-          <span className="bg-gradient-to-r from-[var(--accent)] to-[var(--secondary)] bg-clip-text text-transparent">
-            Furlytics
-          </span>
-        </h1>
-        <p className="mx-auto mt-4 max-w-2xl text-lg text-[var(--muted)]">
-          Your place to track your pets’ health and behaviour, spot patterns, and go to the vet with clear summaries.
-        </p>
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-          <Link
-            href="/dashboard"
-            className="rounded-xl bg-[var(--accent)] px-6 py-3 font-medium text-white shadow-md hover:bg-[var(--accent-hover)] transition-colors"
-          >
-            Go to Dashboard
-          </Link>
-          <Link
-            href="/pets"
-            className="rounded-xl border-2 border-[var(--secondary)] bg-[var(--card)] px-6 py-3 font-medium text-[var(--secondary)] hover:bg-[var(--secondary)]/10 transition-colors"
-          >
-            My Pets
-          </Link>
-          <Link
-            href="/log-incident"
-            className="rounded-xl border-2 border-[var(--border)] bg-[var(--card)] px-6 py-3 font-medium text-[var(--foreground)] hover:border-[var(--accent)] hover:bg-[var(--background)] transition-colors"
-          >
-            Log Incident
-          </Link>
+      <section className="relative overflow-hidden rounded-3xl text-center">
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: "url(/home-hero-dogs.png)" }}
+          aria-hidden
+        />
+        <div
+          className="absolute inset-0 bg-gradient-to-b from-white/85 via-white/75 to-white/90"
+          aria-hidden
+        />
+        <div className="relative px-6 py-14 sm:px-10 sm:py-16">
+          <h1 className="text-3xl font-bold tracking-tight text-[var(--foreground)] sm:text-4xl md:text-5xl">
+            Welcome to{" "}
+            <span className="bg-gradient-to-r from-[var(--accent)] to-[var(--secondary)] bg-clip-text text-transparent">
+              Furlytics
+            </span>
+          </h1>
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-[var(--muted)]">
+            Your place to track your pets’ health and behaviour, spot patterns, and go to the vet with clear summaries.
+          </p>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+            <Link
+              href="/dashboard"
+              className="rounded-xl bg-[var(--accent)] px-6 py-3 font-medium text-white shadow-md hover:bg-[var(--accent-hover)] transition-colors"
+            >
+              Go to Dashboard
+            </Link>
+            <Link
+              href="/pets"
+              className="rounded-xl border-2 border-[var(--secondary)] bg-white/90 px-6 py-3 font-medium text-[var(--secondary)] hover:bg-white transition-colors"
+            >
+              My Pets
+            </Link>
+            <Link
+              href="/log-incident"
+              className="rounded-xl border-2 border-[var(--border)] bg-white/90 px-6 py-3 font-medium text-[var(--foreground)] hover:border-[var(--accent)] hover:bg-white transition-colors"
+            >
+              Log Incident
+            </Link>
+          </div>
         </div>
       </section>
 
