@@ -6,7 +6,7 @@ export default function AppHomePage() {
       {/* Hero — bleed to edges on mobile for a centered full-width feel */}
       <section className="relative -mx-4 h-[min(52vh,420px)] overflow-hidden text-center sm:mx-0 sm:h-[400px] sm:rounded-[2.5rem]">
         <div
-          className="absolute inset-0 bg-cover bg-[center_45%]"
+          className="absolute inset-0 bg-cover bg-[70%_40%] sm:bg-[center_45%]"
           style={{ backgroundImage: "url(/home-hero-dogs.jpg)" }}
           aria-hidden
         />
