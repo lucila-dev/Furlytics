@@ -5,7 +5,7 @@ export default function AppHomePage() {
   return (
     <div className="space-y-16 pb-12">
       <HeroBanner
-        bleed
+        breakout
         title={
           <>
             Welcome to{" "}
