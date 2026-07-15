@@ -11,6 +11,11 @@ export type StoredPet = {
   lastVaccinationDate: string | null;
 };
 
+export type PetFetchResult = {
+  pets: StoredPet[];
+  error: "unauthorized" | "failed" | null;
+};
+
 function mapPet(raw: Record<string, unknown>): StoredPet {
   return {
     id: String(raw.id),
@@ -26,15 +31,30 @@ function mapPet(raw: Record<string, unknown>): StoredPet {
   };
 }
 
+const fetchOpts: RequestInit = { credentials: "same-origin", cache: "no-store" };
+
+export async function fetchPetsResult(): Promise<PetFetchResult> {
+  try {
+    const res = await fetch("/api/pets", fetchOpts);
+    if (res.status === 401) return { pets: [], error: "unauthorized" };
+    if (!res.ok) return { pets: [], error: "failed" };
+    const data = await res.json();
+    return {
+      pets: Array.isArray(data) ? data.map(mapPet) : [],
+      error: null,
+    };
+  } catch {
+    return { pets: [], error: "failed" };
+  }
+}
+
 export async function fetchPets(): Promise<StoredPet[]> {
-  const res = await fetch("/api/pets");
-  if (!res.ok) return [];
-  const data = await res.json();
-  return Array.isArray(data) ? data.map(mapPet) : [];
+  const { pets } = await fetchPetsResult();
+  return pets;
 }
 
 export async function fetchPetById(id: string): Promise<StoredPet | null> {
-  const res = await fetch(`/api/pets/${id}`);
+  const res = await fetch(`/api/pets/${id}`, fetchOpts);
   if (!res.ok) return null;
   return mapPet(await res.json());
 }
@@ -43,6 +63,7 @@ export async function createPet(
   pet: Omit<StoredPet, "id">
 ): Promise<StoredPet | null> {
   const res = await fetch("/api/pets", {
+    ...fetchOpts,
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(pet),
@@ -56,6 +77,7 @@ export async function patchPet(
   updates: Partial<Omit<StoredPet, "id">>
 ): Promise<StoredPet | null> {
   const res = await fetch(`/api/pets/${id}`, {
+    ...fetchOpts,
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(updates),
@@ -65,6 +87,6 @@ export async function patchPet(
 }
 
 export async function removePet(id: string): Promise<boolean> {
-  const res = await fetch(`/api/pets/${id}`, { method: "DELETE" });
+  const res = await fetch(`/api/pets/${id}`, { ...fetchOpts, method: "DELETE" });
   return res.ok;
 }

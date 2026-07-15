@@ -87,14 +87,14 @@ function mapIncident(raw: Record<string, unknown>): StoredIncident {
 
 export async function fetchIncidents(petId?: string): Promise<StoredIncident[]> {
   const url = petId ? `/api/incidents?petId=${encodeURIComponent(petId)}` : "/api/incidents";
-  const res = await fetch(url);
+  const res = await fetch(url, { credentials: "same-origin", cache: "no-store" });
   if (!res.ok) return [];
   const data = await res.json();
   return Array.isArray(data) ? data.map(mapIncident) : [];
 }
 
 export async function fetchIncidentById(id: string): Promise<StoredIncident | null> {
-  const res = await fetch(`/api/incidents/${id}`);
+  const res = await fetch(`/api/incidents/${id}`, { credentials: "same-origin", cache: "no-store" });
   if (!res.ok) return null;
   return mapIncident(await res.json());
 }
@@ -108,6 +108,7 @@ export async function createIncident(
   const symptoms = { ...defaultSymptoms(), ...(incident.symptoms ?? {}) };
   const res = await fetch("/api/incidents", {
     method: "POST",
+    credentials: "same-origin",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       petId: incident.petId,
@@ -126,6 +127,7 @@ export async function createIncident(
 export async function saveIncidentReport(id: string, report: IncidentReport): Promise<boolean> {
   const res = await fetch("/api/incidents", {
     method: "PATCH",
+    credentials: "same-origin",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id, report }),
   });

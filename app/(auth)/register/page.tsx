@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { authClient } from "@/lib/auth/client";
+import { friendlyAuthError } from "@/lib/authOrigin";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -29,7 +30,7 @@ export default function RegisterPage() {
       });
 
       if (signUpError) {
-        setError(signUpError.message || "Registration failed");
+        setError(friendlyAuthError(signUpError.message || "Registration failed"));
         setLoading(false);
         return;
       }

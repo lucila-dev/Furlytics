@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { authClient } from "@/lib/auth/client";
+import { friendlyAuthError } from "@/lib/authOrigin";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -43,10 +44,10 @@ function LoginForm() {
     });
     if (!resend.error) return null;
 
-    return (
+    return friendlyAuthError(
       otpRes.error.message ||
-      resend.error.message ||
-      "Could not send code. Click Resend code to try again."
+        resend.error.message ||
+        "Could not send code. Click Resend code to try again."
     );
   }
 
@@ -75,7 +76,7 @@ function LoginForm() {
       });
 
       if (signInError) {
-        const msg = signInError.message || "Invalid email or password";
+        const msg = friendlyAuthError(signInError.message || "Invalid email or password");
         // Neon blocks unverified accounts — always open the code screen
         if (/verif/i.test(msg) || /not.?verified/i.test(msg)) {
           await openVerify(
@@ -107,7 +108,9 @@ function LoginForm() {
         true
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Sign in failed. Please try again.");
+      setError(
+        friendlyAuthError(err instanceof Error ? err.message : "Sign in failed. Please try again.")
+      );
       setLoading(false);
     }
   }
