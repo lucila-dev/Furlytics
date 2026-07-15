@@ -10,7 +10,7 @@ export function SignOutButton() {
         await authClient.signOut();
         window.location.href = "/login";
       }}
-      className="text-sm text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+      className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm font-medium text-[var(--foreground)] hover:bg-black/5 transition-colors"
     >
       Sign out
     </button>

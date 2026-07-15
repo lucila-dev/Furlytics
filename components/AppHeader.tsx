@@ -23,7 +23,7 @@ function linkClass(accent?: boolean, mobile = false) {
     : "text-sm text-[var(--muted)] hover:text-[var(--foreground)] transition-colors";
 }
 
-export function AppHeader() {
+export function AppHeader({ userEmail }: { userEmail: string }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -59,12 +59,17 @@ export function AppHeader() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-6 md:flex">
+        <nav className="hidden items-center gap-4 md:flex lg:gap-6">
           {links.map((link) => (
             <Link key={link.href} href={link.href} className={linkClass(link.accent)}>
               {link.label}
             </Link>
           ))}
+          {userEmail && (
+            <span className="max-w-[10rem] truncate text-xs text-[var(--muted)] lg:max-w-[14rem]" title={userEmail}>
+              {userEmail}
+            </span>
+          )}
           <SignOutButton />
         </nav>
 
@@ -91,6 +96,9 @@ export function AppHeader() {
       {open && (
         <div id="mobile-nav" className="border-t border-[var(--border)] bg-white md:hidden">
           <nav className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-3">
+            {userEmail && (
+              <p className="px-3 py-2 text-xs text-[var(--muted)]">Signed in as {userEmail}</p>
+            )}
             {links.map((link) => (
               <Link key={link.href} href={link.href} className={linkClass(link.accent, true)}>
                 {link.label}
