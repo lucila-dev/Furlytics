@@ -27,28 +27,35 @@ function LoginForm() {
     return false;
   }
 
-  /** Always open verify UI; try to email a code (failures don't block the code screen). */
-  async function goToVerify(normalizedEmail: string, note: string) {
-    let sendError = "";
+  async function sendCode(normalizedEmail: string) {
     const otpRes = await authClient.emailOtp.sendVerificationOtp({
       email: normalizedEmail,
       type: "email-verification",
     });
-    if (otpRes.error) {
-      const resend = await authClient.sendVerificationEmail({
-        email: normalizedEmail,
-        callbackURL:
-          typeof window !== "undefined"
-            ? `${window.location.origin}/login`
-            : "/login",
-      });
-      if (resend.error) {
-        sendError =
-          otpRes.error.message ||
-          resend.error.message ||
-          "Could not send code automatically — click Resend code.";
-      }
+    if (!otpRes.error) return null;
+
+    const resend = await authClient.sendVerificationEmail({
+      email: normalizedEmail,
+      callbackURL:
+        typeof window !== "undefined"
+          ? `${window.location.origin}/login`
+          : "/login",
+    });
+    if (!resend.error) return null;
+
+    return (
+      otpRes.error.message ||
+      resend.error.message ||
+      "Could not send code. Click Resend code to try again."
+    );
+  }
+
+  async function openVerify(normalizedEmail: string, note: string, autoSend: boolean) {
+    let sendError = "";
+    if (autoSend) {
+      sendError = (await sendCode(normalizedEmail)) || "";
     }
+    setEmail(normalizedEmail);
     setStep("verify");
     setMessage(sendError ? "" : note);
     setError(sendError);
@@ -69,10 +76,12 @@ function LoginForm() {
 
       if (signInError) {
         const msg = signInError.message || "Invalid email or password";
-        if (/verif/i.test(msg)) {
-          await goToVerify(
+        // Neon blocks unverified accounts — always open the code screen
+        if (/verif/i.test(msg) || /not.?verified/i.test(msg)) {
+          await openVerify(
             normalizedEmail,
-            "Verify your email to continue. Enter the code we sent you."
+            "We sent a verification code to your email.",
+            true
           );
           return;
         }
@@ -82,13 +91,21 @@ function LoginForm() {
       }
 
       if (data?.user && !data.user.emailVerified) {
-        await goToVerify(normalizedEmail, "Check your email for a verification code.");
+        await openVerify(
+          normalizedEmail,
+          "We sent a verification code to your email.",
+          true
+        );
         return;
       }
 
       if (await enterApp()) return;
 
-      await goToVerify(normalizedEmail, "Check your email for a verification code.");
+      await openVerify(
+        normalizedEmail,
+        "We sent a verification code to your email.",
+        true
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign in failed. Please try again.");
       setLoading(false);
@@ -119,8 +136,8 @@ function LoginForm() {
           email: normalizedEmail,
           password,
         });
-        if (signInError) {
-          setError(signInError.message || "Email verified. Please sign in with your password.");
+        if (signInError && !/verif/i.test(signInError.message || "")) {
+          setError(signInError.message || "Email verified. Please try signing in again.");
           setStep("auth");
           setLoading(false);
           return;
@@ -143,33 +160,12 @@ function LoginForm() {
     setMessage("");
     setLoading(true);
     const normalizedEmail = email.trim().toLowerCase();
-    try {
-      const otpRes = await authClient.emailOtp.sendVerificationOtp({
-        email: normalizedEmail,
-        type: "email-verification",
-      });
-      if (otpRes.error) {
-        const resend = await authClient.sendVerificationEmail({
-          email: normalizedEmail,
-          callbackURL:
-            typeof window !== "undefined"
-              ? `${window.location.origin}/login`
-              : "/login",
-        });
-        if (resend.error) {
-          setError(
-            otpRes.error.message ||
-              resend.error.message ||
-              "Could not resend code"
-          );
-          setLoading(false);
-          return;
-        }
-      }
+    const sendError = await sendCode(normalizedEmail);
+    if (sendError) {
+      setError(sendError);
+    } else {
       setCode("");
       setMessage("New code sent. Use the newest email (ignore older codes).");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not resend code.");
     }
     setLoading(false);
   }
@@ -179,11 +175,16 @@ function LoginForm() {
       <div className="rounded-2xl border border-[var(--border)] bg-white p-8 shadow-lg">
         <h1 className="text-2xl font-semibold text-[var(--foreground)]">Verify your email</h1>
         <p className="mt-1 text-sm text-[var(--muted)]">
-          Enter the code Neon sent to <span className="font-medium text-[var(--foreground)]">{email}</span>
+          Enter the code Neon sent to{" "}
+          <span className="font-medium text-[var(--foreground)]">{email}</span>
         </p>
         <form onSubmit={handleVerify} className="mt-6 space-y-4">
           {(error || message) && (
-            <p className={`rounded-lg px-3 py-2 text-sm ${error ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-800"}`}>
+            <p
+              className={`rounded-lg px-3 py-2 text-sm ${
+                error ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-800"
+              }`}
+            >
               {error || message}
             </p>
           )}
@@ -219,7 +220,11 @@ function LoginForm() {
           </button>
           <button
             type="button"
-            onClick={() => setStep("auth")}
+            onClick={() => {
+              setStep("auth");
+              setError("");
+              setMessage("");
+            }}
             className="w-full text-sm text-[var(--muted)] hover:text-[var(--foreground)]"
           >
             Back to sign in
@@ -274,22 +279,23 @@ function LoginForm() {
         >
           {loading ? "Signing in…" : "Sign in"}
         </button>
-        {/verif/i.test(error) && (
-          <button
-            type="button"
-            disabled={loading || !email}
-            onClick={async () => {
-              setLoading(true);
-              await goToVerify(
-                email.trim().toLowerCase(),
-                "Check your email for a verification code."
-              );
-            }}
-            className="w-full text-sm font-medium text-[var(--accent)] hover:text-[var(--accent-hover)]"
-          >
-            Send verification code
-          </button>
-        )}
+        <button
+          type="button"
+          disabled={loading || !email.trim()}
+          onClick={async () => {
+            setError("");
+            setMessage("");
+            setLoading(true);
+            await openVerify(
+              email.trim().toLowerCase(),
+              "Enter the code from your email, or tap Resend code.",
+              true
+            );
+          }}
+          className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm font-medium text-[var(--foreground)] hover:bg-black/5 disabled:opacity-50"
+        >
+          I need to verify my email
+        </button>
       </form>
       <p className="mt-4 text-center text-sm text-[var(--muted)]">
         No account?{" "}
@@ -303,7 +309,13 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="rounded-2xl border border-[var(--border)] bg-white p-8 shadow-lg text-center text-[var(--muted)]">Loading…</div>}>
+    <Suspense
+      fallback={
+        <div className="rounded-2xl border border-[var(--border)] bg-white p-8 shadow-lg text-center text-[var(--muted)]">
+          Loading…
+        </div>
+      }
+    >
       <LoginForm />
     </Suspense>
   );
