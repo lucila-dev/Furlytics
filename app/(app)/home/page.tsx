@@ -4,7 +4,7 @@ export default function AppHomePage() {
   return (
     <div className="space-y-16 pb-12">
       {/* Hero — fixed height so the block length never changes with viewport */}
-      <section className="relative h-[380px] overflow-hidden rounded-[2rem] text-center sm:h-[420px] sm:rounded-[2.5rem]">
+      <section className="relative h-[400px] overflow-hidden rounded-[2rem] text-center sm:rounded-[2.5rem]">
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: "url(/home-hero-dogs.png)" }}
