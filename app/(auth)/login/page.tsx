@@ -27,6 +27,34 @@ function LoginForm() {
     return false;
   }
 
+  /** Always open verify UI; try to email a code (failures don't block the code screen). */
+  async function goToVerify(normalizedEmail: string, note: string) {
+    let sendError = "";
+    const otpRes = await authClient.emailOtp.sendVerificationOtp({
+      email: normalizedEmail,
+      type: "email-verification",
+    });
+    if (otpRes.error) {
+      const resend = await authClient.sendVerificationEmail({
+        email: normalizedEmail,
+        callbackURL:
+          typeof window !== "undefined"
+            ? `${window.location.origin}/login`
+            : "/login",
+      });
+      if (resend.error) {
+        sendError =
+          otpRes.error.message ||
+          resend.error.message ||
+          "Could not send code automatically — click Resend code.";
+      }
+    }
+    setStep("verify");
+    setMessage(sendError ? "" : note);
+    setError(sendError);
+    setLoading(false);
+  }
+
   async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
     setError("");
@@ -42,27 +70,10 @@ function LoginForm() {
       if (signInError) {
         const msg = signInError.message || "Invalid email or password";
         if (/verif/i.test(msg)) {
-          const resend = await authClient.sendVerificationEmail({
-            email: normalizedEmail,
-            callbackURL:
-              typeof window !== "undefined"
-                ? `${window.location.origin}/login`
-                : "/login",
-          });
-          if (resend.error) {
-            const otpRes = await authClient.emailOtp.sendVerificationOtp({
-              email: normalizedEmail,
-              type: "email-verification",
-            });
-            if (otpRes.error) {
-              setError(otpRes.error.message || resend.error.message || msg);
-              setLoading(false);
-              return;
-            }
-          }
-          setMessage("Verify your email to continue. Enter the code we sent you.");
-          setStep("verify");
-          setLoading(false);
+          await goToVerify(
+            normalizedEmail,
+            "Verify your email to continue. Enter the code we sent you."
+          );
           return;
         }
         setError(msg);
@@ -71,57 +82,13 @@ function LoginForm() {
       }
 
       if (data?.user && !data.user.emailVerified) {
-        const resend = await authClient.sendVerificationEmail({
-          email: normalizedEmail,
-          callbackURL:
-            typeof window !== "undefined"
-              ? `${window.location.origin}/login`
-              : "/login",
-        });
-        if (resend.error) {
-          const otpRes = await authClient.emailOtp.sendVerificationOtp({
-            email: normalizedEmail,
-            type: "email-verification",
-          });
-          if (otpRes.error) {
-            setError(
-              otpRes.error.message ||
-                resend.error.message ||
-                "Could not send verification code."
-            );
-            setLoading(false);
-            return;
-          }
-        }
-        setMessage("Check your email for a verification code.");
-        setStep("verify");
-        setLoading(false);
+        await goToVerify(normalizedEmail, "Check your email for a verification code.");
         return;
       }
 
       if (await enterApp()) return;
 
-      const resend = await authClient.sendVerificationEmail({
-        email: normalizedEmail,
-        callbackURL:
-          typeof window !== "undefined"
-            ? `${window.location.origin}/login`
-            : "/login",
-      });
-      if (resend.error) {
-        const otpRes = await authClient.emailOtp.sendVerificationOtp({
-          email: normalizedEmail,
-          type: "email-verification",
-        });
-        if (otpRes.error) {
-          setError(otpRes.error.message || "Could not send verification code.");
-          setLoading(false);
-          return;
-        }
-      }
-      setMessage("Check your email for a verification code.");
-      setStep("verify");
-      setLoading(false);
+      await goToVerify(normalizedEmail, "Check your email for a verification code.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign in failed. Please try again.");
       setLoading(false);
@@ -182,13 +149,27 @@ function LoginForm() {
         type: "email-verification",
       });
       if (otpRes.error) {
-        setError(otpRes.error.message || "Could not resend code");
-        setLoading(false);
-        return;
+        const resend = await authClient.sendVerificationEmail({
+          email: normalizedEmail,
+          callbackURL:
+            typeof window !== "undefined"
+              ? `${window.location.origin}/login`
+              : "/login",
+        });
+        if (resend.error) {
+          setError(
+            otpRes.error.message ||
+              resend.error.message ||
+              "Could not resend code"
+          );
+          setLoading(false);
+          return;
+        }
       }
-      setMessage("Verification code sent. Check your inbox.");
-    } catch {
-      setError("Could not resend code.");
+      setCode("");
+      setMessage("New code sent. Use the newest email (ignore older codes).");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not resend code.");
     }
     setLoading(false);
   }
@@ -293,6 +274,22 @@ function LoginForm() {
         >
           {loading ? "Signing in…" : "Sign in"}
         </button>
+        {/verif/i.test(error) && (
+          <button
+            type="button"
+            disabled={loading || !email}
+            onClick={async () => {
+              setLoading(true);
+              await goToVerify(
+                email.trim().toLowerCase(),
+                "Check your email for a verification code."
+              );
+            }}
+            className="w-full text-sm font-medium text-[var(--accent)] hover:text-[var(--accent-hover)]"
+          >
+            Send verification code
+          </button>
+        )}
       </form>
       <p className="mt-4 text-center text-sm text-[var(--muted)]">
         No account?{" "}
