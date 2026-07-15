@@ -4,17 +4,26 @@ export default function AppHomePage() {
   return (
     <div className="space-y-16 pb-12">
       {/* Hero for logged-in users */}
-      <section className="relative overflow-hidden rounded-3xl text-center">
+      <section className="relative -mx-4 overflow-hidden text-center sm:-mx-6">
         <div
-          className="absolute inset-0 bg-cover bg-center"
+          className="absolute inset-0 bg-cover bg-[center_40%] scale-[1.02]"
           style={{ backgroundImage: "url(/home-hero-dogs.png)" }}
           aria-hidden
         />
         <div
-          className="absolute inset-0 bg-gradient-to-b from-white/85 via-white/75 to-white/90"
+          className="absolute inset-0 bg-gradient-to-b from-[var(--background)]/70 via-white/55 to-[var(--background)]/80"
           aria-hidden
         />
-        <div className="relative px-6 py-14 sm:px-10 sm:py-16">
+        {/* Soft edge fade so the photo blends into the page */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(to right, var(--background) 0%, transparent 8%, transparent 92%, var(--background) 100%), linear-gradient(to bottom, var(--background) 0%, transparent 12%, transparent 88%, var(--background) 100%)",
+          }}
+          aria-hidden
+        />
+        <div className="relative px-6 py-20 sm:px-10 sm:py-24">
           <h1 className="text-3xl font-bold tracking-tight text-[var(--foreground)] sm:text-4xl md:text-5xl">
             Welcome to{" "}
             <span className="bg-gradient-to-r from-[var(--accent)] to-[var(--secondary)] bg-clip-text text-transparent">
