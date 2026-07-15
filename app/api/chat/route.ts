@@ -6,8 +6,6 @@ import OpenAI from "openai";
  * No separate API is needed – this route calls OpenAI Chat Completions with a pet-health context.
  */
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
 export async function POST(request: NextRequest) {
   const key = process.env.OPENAI_API_KEY;
   if (!key) {
@@ -16,6 +14,7 @@ export async function POST(request: NextRequest) {
       { status: 503 }
     );
   }
+  const openai = new OpenAI({ apiKey: key });
   let body: { message: string };
   try {
     body = await request.json();

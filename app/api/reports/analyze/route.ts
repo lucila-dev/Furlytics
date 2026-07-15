@@ -20,8 +20,6 @@ export type IncidentReport = {
   whenToSeekVet: string;
 };
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
 function symptomsToText(symptoms: Record<string, boolean>): string {
   const present = Object.entries(symptoms)
     .filter(([, v]) => v)
@@ -37,6 +35,7 @@ export async function POST(request: NextRequest) {
       { status: 503 }
     );
   }
+  const openai = new OpenAI({ apiKey: key });
   let body: AnalyzePayload;
   try {
     body = await request.json();
