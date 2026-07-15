@@ -4,15 +4,15 @@ export default function AppHomePage() {
   return (
     <div className="space-y-16 pb-12">
       {/* Hero for logged-in users */}
-      <section className="relative overflow-hidden rounded-3xl text-center">
+      <section className="relative overflow-hidden rounded-[2rem] text-center sm:rounded-[2.5rem]">
         <div
-          className="absolute inset-0 bg-cover bg-[center_40%]"
+          className="absolute inset-0 scale-105 bg-cover bg-[center_42%]"
           style={{ backgroundImage: "url(/home-hero-dogs.png)" }}
           aria-hidden
         />
         <div
           className="absolute inset-0"
-          style={{ backgroundColor: "color-mix(in srgb, var(--background) 50%, transparent)" }}
+          style={{ backgroundColor: "color-mix(in srgb, var(--background) 48%, transparent)" }}
           aria-hidden
         />
         <div className="relative px-6 py-20 sm:px-10 sm:py-24">
