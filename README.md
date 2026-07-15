@@ -5,8 +5,8 @@ Pet Behaviour & Health Intelligence Platform. Log incidents, detect patterns, ge
 ## Stack
 
 - **Next.js** (App Router) + TypeScript
-- **PostgreSQL** + Prisma
-- **NextAuth** (credentials)
+- **PostgreSQL** (Neon) + Prisma
+- **Neon Auth** (email + password, email verification required)
 - **OpenAI** (single controlled call for insights)
 - **Tailwind CSS**
 
@@ -18,54 +18,48 @@ Pet Behaviour & Health Intelligence Platform. Log incidents, detect patterns, ge
    npm install
    ```
 
-2. **Environment**
+2. **Neon**
+
+   - Create a Neon project and copy `DATABASE_URL`
+   - In Neon Console → **Auth** → **Enable Auth**
+   - Enable **Sign-up with Email** and **Verify at Sign-up** (verification **codes**)
+   - Copy **Auth URL** as `NEON_AUTH_BASE_URL`
+   - Add your site domain under Auth trusted domains (e.g. `localhost:3000`, your Vercel URL)
+
+3. **Environment**
 
    Copy `.env.example` to `.env` and set:
 
-   - `DATABASE_URL` – PostgreSQL connection string (e.g. Supabase, Railway, or local)
-   - `NEXTAUTH_SECRET` – e.g. `openssl rand -base64 32`
-   - `NEXTAUTH_URL` – `http://localhost:3000` (dev) or your production URL
+   - `DATABASE_URL` – Neon Postgres connection string
+   - `NEON_AUTH_BASE_URL` – from Neon Auth configuration
+   - `NEON_AUTH_COOKIE_SECRET` – e.g. `openssl rand -base64 32`
    - `OPENAI_API_KEY` – for “Generate Insight” (optional for local; insight API returns 503 if missing)
 
-3. **Database**
-
-   ```bash
-   npx prisma migrate deploy
-   # or for dev with shadow DB:
-   npx prisma migrate dev
-   ```
-
-   Seed a demo user and pet (optional):
-
-   ```bash
-   npx prisma db seed
-   # Login: demo@furlytics.app / demo123
-   ```
-
-4. **Run**
-
-   ```bash
-   npm run dev
-   ```
-
-   Open [http://localhost:3000](http://localhost:3000). Sign up or use the seeded account.
-
-## Deploy (Vercel)
-
-1. Connect the repo to Vercel.
-2. Set environment variables: `DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL` (production URL), `OPENAI_API_KEY`.
-3. Use a Postgres provider (Vercel Postgres, Supabase, or Railway); run migrations in the build step or via a deploy hook:
+4. **Database**
 
    ```bash
    npx prisma migrate deploy
    npx prisma generate
    ```
 
-   In Vercel, add a build command that runs `prisma generate` (e.g. `prisma generate && next build`) and ensure `DATABASE_URL` is available at build time if you run migrations in CI.
+5. **Run**
+
+   ```bash
+   npm run dev
+   ```
+
+   Open [http://localhost:3000](http://localhost:3000). Register, verify the email code, then use the app.
+
+## Deploy (Vercel)
+
+1. Connect the repo to Vercel.
+2. Set environment variables: `DATABASE_URL`, `NEON_AUTH_BASE_URL`, `NEON_AUTH_COOKIE_SECRET`, `OPENAI_API_KEY`.
+3. Add your production domain in Neon Auth trusted domains.
+4. Build command: `npx prisma generate && next build`
 
 ## Features
 
-- **Auth**: Register / login (email + password).
+- **Auth**: Register / login via Neon Auth; email must be verified (OTP) before access.
 - **Pets**: List and view pets.
 - **Incidents**: Log symptoms/behaviour with optional flags (vomiting, lethargy, etc.); timeline per pet with severity (green/amber/red).
 - **AI Insight**: On “Generate Insight”, one OpenAI call returns structured JSON (category, urgency, causes, advice, vet questions); stored in DB and shown in a card layout.

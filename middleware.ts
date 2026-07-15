@@ -1,12 +1,7 @@
-import { withAuth } from "next-auth/middleware";
+import { auth } from "@/lib/auth/server";
 
-export default withAuth({
-  callbacks: {
-    authorized: ({ token }) => Boolean(token?.email || token?.sub),
-  },
-  pages: {
-    signIn: "/login",
-  },
+export default auth.middleware({
+  loginUrl: "/login",
 });
 
 export const config = {
