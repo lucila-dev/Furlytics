@@ -32,8 +32,8 @@ export function HeroBanner({ title, subtitle, ctas, breakout = false }: HeroBann
     <section
       className={
         breakout
-          ? "relative -mx-4 h-[320px] overflow-hidden text-center sm:mx-0 sm:h-[400px] sm:rounded-[2.5rem]"
-          : "relative h-[320px] overflow-hidden text-center sm:h-[400px] sm:rounded-[2.5rem]"
+          ? "relative -mx-4 h-[340px] overflow-hidden text-center sm:mx-0 sm:h-[420px] sm:rounded-[2.5rem]"
+          : "relative h-[340px] overflow-hidden text-center sm:h-[420px] sm:rounded-[2.5rem]"
       }
     >
       <div
@@ -41,20 +41,26 @@ export function HeroBanner({ title, subtitle, ctas, breakout = false }: HeroBann
         style={{ backgroundImage: "url(/home-hero-dogs.jpg)" }}
         aria-hidden
       />
-      <div className="absolute inset-0 bg-[#f8f6fc]/55" aria-hidden />
-      <div className="relative mx-auto flex h-full max-w-6xl flex-col items-center justify-center px-5 py-6 sm:px-10">
-        <h1 className="max-w-3xl text-3xl font-bold tracking-tight text-[var(--foreground)] sm:text-4xl md:text-5xl">
-          {title}
-        </h1>
-        <p className="mx-auto mt-3 max-w-md text-base leading-relaxed text-[var(--foreground)]/90 sm:mt-4 sm:max-w-xl sm:text-lg">
-          {subtitle}
-        </p>
-        <div className="mt-5 flex w-full max-w-sm flex-col gap-3 sm:mt-6 sm:max-w-none sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-3">
-          {ctas.map((cta) => (
-            <Link key={cta.href + cta.label} href={cta.href} className={variantClass[cta.variant]}>
-              {cta.label}
-            </Link>
-          ))}
+      {/* Soft veil so the photo stays visible but text contrast improves */}
+      <div
+        className="absolute inset-0 bg-gradient-to-b from-[#f8f6fc]/80 via-[#f8f6fc]/65 to-[#f8f6fc]/80"
+        aria-hidden
+      />
+      <div className="relative mx-auto flex h-full max-w-6xl flex-col items-center justify-center px-4 py-6 sm:px-10">
+        <div className="w-full max-w-2xl rounded-2xl bg-white/85 px-5 py-6 shadow-lg backdrop-blur-md sm:px-8 sm:py-8">
+          <h1 className="text-3xl font-bold tracking-tight text-[var(--foreground)] sm:text-4xl md:text-5xl">
+            {title}
+          </h1>
+          <p className="mx-auto mt-3 max-w-xl text-base leading-relaxed text-[var(--muted)] sm:mt-4 sm:text-lg">
+            {subtitle}
+          </p>
+          <div className="mt-5 flex w-full flex-col gap-3 sm:mt-6 sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-3">
+            {ctas.map((cta) => (
+              <Link key={cta.href + cta.label} href={cta.href} className={variantClass[cta.variant]}>
+                {cta.label}
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </section>
