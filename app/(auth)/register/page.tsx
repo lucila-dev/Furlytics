@@ -58,8 +58,14 @@ export default function RegisterPage() {
       setMessage("Check your email for a verification code.");
       setStep("verify");
       setLoading(false);
-    } catch {
-      setError("Registration failed. Please try again.");
+    } catch (err) {
+      const detail =
+        err instanceof Error
+          ? err.message
+          : typeof err === "string"
+            ? err
+            : "Registration failed. Please try again.";
+      setError(detail);
       setLoading(false);
     }
   }
