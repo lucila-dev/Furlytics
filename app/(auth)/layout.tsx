@@ -1,6 +1,13 @@
+import { redirect } from "next/navigation";
+import { getVerifiedSession } from "@/lib/session";
 import { AuthOriginBanner } from "@/components/AuthOriginBanner";
 
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
+export default async function AuthLayout({ children }: { children: React.ReactNode }) {
+  const session = await getVerifiedSession();
+  if (session?.user) {
+    redirect("/home");
+  }
+
   return (
     <div className="pet-bg min-h-screen">
       <AuthOriginBanner />

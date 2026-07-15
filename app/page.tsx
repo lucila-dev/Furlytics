@@ -1,8 +1,15 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { MarketingHeader } from "@/components/MarketingHeader";
 import { HeroBanner } from "@/components/HeroBanner";
+import { getVerifiedSession } from "@/lib/session";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const session = await getVerifiedSession();
+  if (session?.user) {
+    redirect("/home");
+  }
+
   return (
     <div className="flex min-h-screen flex-col pet-bg">
       <MarketingHeader />
