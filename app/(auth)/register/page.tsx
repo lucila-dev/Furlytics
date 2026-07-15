@@ -34,15 +34,30 @@ export default function RegisterPage() {
         return;
       }
 
-      if (data?.user && !data.user.emailVerified) {
-        setMessage("Check your email for a verification code from Neon.");
-        setStep("verify");
+      // Always require email verification before entering the app
+      if (data?.user?.emailVerified) {
+        router.push("/dashboard");
+        router.refresh();
+        return;
+      }
+
+      // Ask Neon to send a verification OTP (in case it wasn't sent on sign-up)
+      const otpRes = await authClient.emailOtp.sendVerificationOtp({
+        email: normalizedEmail,
+        type: "email-verification",
+      });
+      if (otpRes.error) {
+        setError(
+          otpRes.error.message ||
+            "Account created, but we couldn’t send a verification code. Check Neon Auth settings (Require email verification + Verification code)."
+        );
         setLoading(false);
         return;
       }
 
-      router.push("/dashboard");
-      router.refresh();
+      setMessage("Check your email for a verification code.");
+      setStep("verify");
+      setLoading(false);
     } catch {
       setError("Registration failed. Please try again.");
       setLoading(false);

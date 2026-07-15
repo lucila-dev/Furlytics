@@ -42,6 +42,15 @@ function LoginForm() {
       if (signInError) {
         const msg = signInError.message || "Invalid email or password";
         if (/verif/i.test(msg)) {
+          const otpRes = await authClient.emailOtp.sendVerificationOtp({
+            email: normalizedEmail,
+            type: "email-verification",
+          });
+          if (otpRes.error) {
+            setError(otpRes.error.message || msg);
+            setLoading(false);
+            return;
+          }
           setMessage("Verify your email to continue. Enter the code we sent you.");
           setStep("verify");
           setLoading(false);
@@ -53,6 +62,15 @@ function LoginForm() {
       }
 
       if (data?.user && !data.user.emailVerified) {
+        const otpRes = await authClient.emailOtp.sendVerificationOtp({
+          email: normalizedEmail,
+          type: "email-verification",
+        });
+        if (otpRes.error) {
+          setError(otpRes.error.message || "Could not send verification code.");
+          setLoading(false);
+          return;
+        }
         setMessage("Check your email for a verification code.");
         setStep("verify");
         setLoading(false);
@@ -61,6 +79,15 @@ function LoginForm() {
 
       if (await enterApp()) return;
 
+      const otpRes = await authClient.emailOtp.sendVerificationOtp({
+        email: normalizedEmail,
+        type: "email-verification",
+      });
+      if (otpRes.error) {
+        setError(otpRes.error.message || "Could not send verification code.");
+        setLoading(false);
+        return;
+      }
       setMessage("Check your email for a verification code.");
       setStep("verify");
       setLoading(false);
