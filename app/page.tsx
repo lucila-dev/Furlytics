@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MarketingHeader } from "@/components/MarketingHeader";
+import { HeroBanner } from "@/components/HeroBanner";
 
 export default function HomePage() {
   return (
@@ -7,48 +8,21 @@ export default function HomePage() {
       <MarketingHeader />
 
       <main className="flex-1">
-        {/* Hero — same full-bleed background treatment as /home */}
-        <section className="relative overflow-hidden text-center">
-          <div className="absolute inset-0 bg-[var(--background)]" aria-hidden />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/home-hero-dogs.jpg"
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover object-[center_45%]"
-            aria-hidden
-          />
-          <div
-            className="absolute inset-0"
-            style={{ backgroundColor: "color-mix(in srgb, var(--background) 50%, transparent)" }}
-            aria-hidden
-          />
-          <div className="relative mx-auto flex min-h-[min(70vh,520px)] max-w-6xl flex-col items-center justify-center px-5 py-12 sm:min-h-[400px] sm:px-10 sm:py-16">
-            <h1 className="max-w-3xl text-3xl font-bold tracking-tight text-[var(--foreground)] sm:text-5xl md:text-6xl">
+        <HeroBanner
+          title={
+            <>
               Pet behaviour & health,{" "}
               <span className="bg-gradient-to-r from-[var(--accent)] to-[var(--secondary)] bg-clip-text text-transparent">
                 simplified
               </span>
-            </h1>
-            <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-[var(--foreground)]/85 sm:mt-6 sm:text-xl">
-              Log symptoms and behaviour, spot patterns over time, and walk into the vet with clear summaries. Built for
-              pet owners who care.
-            </p>
-            <div className="mt-6 flex w-full max-w-sm flex-col gap-3 sm:mt-10 sm:max-w-none sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-4">
-              <Link
-                href="/login"
-                className="rounded-xl bg-[var(--accent)] px-6 py-3.5 text-center text-base font-medium text-white shadow-lg hover:bg-[var(--accent-hover)] transition-colors"
-              >
-                Sign in
-              </Link>
-              <Link
-                href="/register"
-                className="rounded-xl border-2 border-[var(--secondary)] bg-white/95 px-6 py-3.5 text-center text-base font-medium text-[var(--secondary)] hover:bg-white transition-colors"
-              >
-                Register
-              </Link>
-            </div>
-          </div>
-        </section>
+            </>
+          }
+          subtitle="Log symptoms and behaviour, spot patterns over time, and walk into the vet with clear summaries. Built for pet owners who care."
+          ctas={[
+            { href: "/login", label: "Sign in", variant: "primary" },
+            { href: "/register", label: "Register", variant: "secondary" },
+          ]}
+        />
 
         {/* Features */}
         <section id="features" className="border-t border-[var(--border)] bg-white/60 py-20 sm:py-24">
