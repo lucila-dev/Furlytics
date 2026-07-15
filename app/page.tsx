@@ -176,7 +176,7 @@ export default function HomePage() {
             </nav>
           </div>
           <p className="mt-8 text-center text-sm text-[var(--muted)] sm:text-left">
-            Pet behaviour & health intelligence. Template – connect your API when ready.
+            Pet behaviour & health intelligence, made simple for owners who care.
           </p>
           <p className="mt-2 text-center text-xs text-[var(--muted)]/70 sm:text-left">
             © {new Date().getFullYear()} Furlytics. All rights reserved.

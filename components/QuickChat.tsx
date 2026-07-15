@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 
 const LULU_INTRO =
-  "Hi! I’m Lulu. Ask me anything about your pet’s symptoms, behaviour, or what might be going on. I’ll focus on possible causes and what to watch for.";
+  "Hey! I’m Lulu 🐾 I’m here if you’re worried about your pet or just want a second opinion. Ask me anything — symptoms, behaviour, “is this normal?” — I’ll keep it simple and friendly.";
 
 export function QuickChat() {
   const [open, setOpen] = useState(false);
@@ -12,6 +12,7 @@ export function QuickChat() {
   const [loading, setLoading] = useState(false);
   const [introShown, setIntroShown] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (open) inputRef.current?.focus();
@@ -23,6 +24,10 @@ export function QuickChat() {
       setIntroShown(true);
     }
   }, [open, introShown]);
+
+  useEffect(() => {
+    listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages, loading]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -37,13 +42,27 @@ export function QuickChat() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: q }),
       });
-      const data = await res.json();
-      const reply = res.ok ? data.reply : "Sorry, I couldn’t get a reply. Check that OPENAI_API_KEY is set in .env.local.";
-      setMessages((m) => [...m, { role: "assistant", text: reply }]);
+      const data = await res.json().catch(() => ({}));
+      const reply = res.ok
+        ? data.reply
+        : "Aw, I’m having a little glitch on my end. Could you try that again in a moment?";
+      setMessages((m) => [
+        ...m,
+        {
+          role: "assistant",
+          text:
+            typeof reply === "string" && reply.trim()
+              ? reply
+              : "Hmm, I blanked for a sec — mind asking me that again?",
+        },
+      ]);
     } catch {
       setMessages((m) => [
         ...m,
-        { role: "assistant", text: "Something went wrong. Please try again." },
+        {
+          role: "assistant",
+          text: "Sorry, I couldn’t get that through. Give it another go when you can!",
+        },
       ]);
     } finally {
       setLoading(false);
@@ -64,7 +83,12 @@ export function QuickChat() {
           </svg>
         ) : (
           <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+            />
           </svg>
         )}
       </button>
@@ -73,9 +97,9 @@ export function QuickChat() {
         <div className="fixed bottom-24 right-6 z-50 w-full max-w-sm overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-xl">
           <div className="border-b border-[var(--border)] bg-[var(--accent)]/10 px-4 py-3">
             <h3 className="font-semibold text-[var(--foreground)]">Lulu</h3>
-            <p className="text-xs text-[var(--muted)]">Quick chat about your pet</p>
+            <p className="text-xs text-[var(--muted)]">Here for you and your pet</p>
           </div>
-          <div className="max-h-64 overflow-y-auto p-3 space-y-2">
+          <div ref={listRef} className="max-h-64 overflow-y-auto p-3 space-y-2">
             {messages.map((msg, i) => (
               <div
                 key={i}
@@ -90,7 +114,7 @@ export function QuickChat() {
             ))}
             {loading && (
               <div className="mr-4 rounded-xl bg-[var(--background)] px-3 py-2 text-sm text-[var(--muted)]">
-                Thinking…
+                One sec…
               </div>
             )}
           </div>
@@ -101,7 +125,7 @@ export function QuickChat() {
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Ask Lulu…"
+                placeholder="What’s on your mind?"
                 className="flex-1 rounded-xl border border-[var(--border)] px-3 py-2.5 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20"
               />
               <button
