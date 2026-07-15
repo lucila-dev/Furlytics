@@ -6,21 +6,14 @@ export default function AppHomePage() {
       {/* Hero for logged-in users */}
       <section className="relative -mx-4 overflow-hidden text-center sm:-mx-6">
         <div
-          className="absolute inset-0 bg-cover bg-[center_40%] scale-[1.02]"
+          className="absolute inset-0 bg-cover bg-[center_40%]"
           style={{ backgroundImage: "url(/home-hero-dogs.png)" }}
           aria-hidden
         />
+        {/* Soft wash for text — same tint as page, not white edges */}
         <div
-          className="absolute inset-0 bg-gradient-to-b from-[var(--background)]/70 via-white/55 to-[var(--background)]/80"
-          aria-hidden
-        />
-        {/* Soft edge fade so the photo blends into the page */}
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(to right, var(--background) 0%, transparent 8%, transparent 92%, var(--background) 100%), linear-gradient(to bottom, var(--background) 0%, transparent 12%, transparent 88%, var(--background) 100%)",
-          }}
+          className="absolute inset-0"
+          style={{ backgroundColor: "color-mix(in srgb, var(--background) 55%, transparent)" }}
           aria-hidden
         />
         <div className="relative px-6 py-20 sm:px-10 sm:py-24">
