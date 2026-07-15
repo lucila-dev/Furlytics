@@ -15,15 +15,25 @@ export async function POST(request: Request) {
     if (!parsed.success) {
       return NextResponse.json({ error: "Invalid email or password" }, { status: 400 });
     }
-    const { email, password } = parsed.data;
+    const email = parsed.data.email.trim().toLowerCase();
+    const { password } = parsed.data;
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
-      return NextResponse.json({ error: "Email already registered" }, { status: 400 });
+      return NextResponse.json({ error: "Email already registered" }, { status: 409 });
     }
     const passwordHash = await hash(password, 10);
-    await prisma.user.create({
-      data: { email, passwordHash },
-    });
+    try {
+      await prisma.user.create({
+        data: { email, passwordHash },
+      });
+    } catch (e) {
+      // Unique constraint race
+      const code = typeof e === "object" && e && "code" in e ? (e as { code: string }).code : "";
+      if (code === "P2002") {
+        return NextResponse.json({ error: "Email already registered" }, { status: 409 });
+      }
+      throw e;
+    }
     return NextResponse.json({ ok: true });
   } catch (e) {
     console.error(e);

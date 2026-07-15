@@ -16,34 +16,35 @@ export default function RegisterPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
+    const normalizedEmail = email.trim().toLowerCase();
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: normalizedEmail, password }),
       });
       const data = await res.json().catch(() => ({}));
-      if (res.ok) {
-        const signInRes = await signIn("credentials", { email, password, redirect: false });
-        setLoading(false);
-        if (!signInRes?.error) {
-          router.push("/dashboard");
-          router.refresh();
-          return;
-        }
-      } else if (res.status === 400) {
-        // e.g. "Email already registered" or validation error
+      if (!res.ok) {
         setError(data.error ?? "Registration failed");
         setLoading(false);
         return;
       }
-      // 500, network error, or no backend: go to app (template mode)
+      const signInRes = await signIn("credentials", {
+        email: normalizedEmail,
+        password,
+        redirect: false,
+      });
+      if (signInRes?.error) {
+        setError("Account created, but sign in failed. Please log in.");
+        setLoading(false);
+        return;
+      }
+      router.push("/dashboard");
+      router.refresh();
     } catch {
-      // Fetch failed: go to app (template mode)
+      setError("Registration failed. Please try again.");
+      setLoading(false);
     }
-    setLoading(false);
-    router.push("/dashboard");
-    router.refresh();
   }
 
   return (
@@ -66,6 +67,7 @@ export default function RegisterPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            autoComplete="email"
             className="mt-1 block w-full rounded-xl border border-[var(--border)] px-3 py-2.5 text-[var(--foreground)] shadow-sm focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20"
           />
         </div>
@@ -80,6 +82,7 @@ export default function RegisterPage() {
             onChange={(e) => setPassword(e.target.value)}
             required
             minLength={6}
+            autoComplete="new-password"
             className="mt-1 block w-full rounded-xl border border-[var(--border)] px-3 py-2.5 text-[var(--foreground)] shadow-sm focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20"
           />
         </div>
