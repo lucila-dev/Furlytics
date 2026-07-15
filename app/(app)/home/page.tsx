@@ -3,19 +3,19 @@ import Link from "next/link";
 export default function AppHomePage() {
   return (
     <div className="space-y-16 pb-12">
-      {/* Hero — photo behind copy; contain on mobile so all animals stay in frame */}
+      {/* Hero — photo behind copy */}
       <section className="relative -mx-4 overflow-hidden text-center sm:mx-0 sm:h-[400px] sm:rounded-[2.5rem]">
         <div className="absolute inset-0 bg-[var(--background)]" aria-hidden />
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/home-hero-dogs.jpg"
           alt=""
-          className="absolute inset-0 h-full w-full object-contain object-center sm:object-cover sm:object-[center_45%]"
+          className="absolute inset-0 h-full w-full object-cover object-[center_45%]"
           aria-hidden
         />
         <div
           className="absolute inset-0"
-          style={{ backgroundColor: "color-mix(in srgb, var(--background) 55%, transparent)" }}
+          style={{ backgroundColor: "color-mix(in srgb, var(--background) 50%, transparent)" }}
           aria-hidden
         />
         <div className="relative flex min-h-[min(52vh,420px)] flex-col items-center justify-center px-5 py-10 sm:h-full sm:min-h-0 sm:px-10 sm:py-8">
@@ -25,7 +25,7 @@ export default function AppHomePage() {
               Furlytics
             </span>
           </h1>
-          <p className="mx-auto mt-3 max-w-md text-base leading-relaxed text-[var(--foreground)]/80 sm:mt-4 sm:max-w-2xl sm:text-lg">
+          <p className="mx-auto mt-3 max-w-md text-base leading-relaxed text-[var(--foreground)]/85 sm:mt-4 sm:max-w-2xl sm:text-lg">
             Your place to track your pets’ health and behaviour, spot patterns, and go to the vet with clear summaries.
           </p>
           <div className="mt-6 flex w-full max-w-sm flex-col gap-3 sm:mt-8 sm:max-w-none sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-4">
