@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma migrate deploy && prisma generate && next build",
+    "build": "node scripts/migrate-with-retry.js && prisma generate && next build",
+    "db:migrate:deploy": "node scripts/migrate-with-retry.js",
     "start": "next start",
     "preview": "npm run build && npm run start",
     "lint": "eslint",
