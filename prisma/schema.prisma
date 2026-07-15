@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String  @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+  pets         Pet[]
+}
+
+model Pet {
+  id               String         @id @default(cuid())
+  userId           String         @map("user_id")
+  name             String
+  breed            String?
+  age              Int?
+  weight           Float?
+  knownConditions  String?        @map("known_conditions")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  incidents        Incident[]
+  patternAlerts    PatternAlert[]
+}
+
+enum IncidentCategory {
+  symptom
+  behaviour
+}
+
+model Incident {
+  id           String       @id @default(cuid())
+  petId        String       @map("pet_id")
+  category     IncidentCategory
+  title        String
+  description  String?
+  appetiteLoss Boolean      @default(false) @map("appetite_loss")
+  vomiting     Boolean      @default(false)
+  lethargy     Boolean      @default(false)
+  aggression   Boolean      @default(false)
+  anxiety      Boolean      @default(false)
+  timestamp    DateTime
+  createdAt    DateTime     @default(now()) @map("created_at")
+  pet          Pet          @relation(fields: [petId], references: [id], onDelete: Cascade)
+  aiInsight    AIInsight?
+
+  @@index([petId, timestamp])
+  @@index([petId, category])
+}
+
+enum UrgencyLevel {
+  monitor
+  vet_soon
+  urgent
+}
+
+model AIInsight {
+  id                 String       @id @default(cuid())
+  incidentId         String       @unique @map("incident_id")
+  behaviourCategory  String       @map("behaviour_category")
+  urgencyLevel       UrgencyLevel @map("urgency_level")
+  potentialCauses    Json         @map("potential_causes")
+  monitoringAdvice   String       @map("monitoring_advice")
+  vetQuestions       Json         @map("vet_questions")
+  createdAt          DateTime     @default(now()) @map("created_at")
+  incident           Incident     @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+}
+
+model PatternAlert {
+  id           String   @id @default(cuid())
+  petId        String   @map("pet_id")
+  patternType  String   @map("pattern_type")
+  severityScore Float?  @map("severity_score")
+  description  String
+  triggeredAt  DateTime @default(now()) @map("triggered_at")
+  pet          Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+
+  @@index([petId])
+}

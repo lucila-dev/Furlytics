@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f8f6fc;
+  --foreground: #1f1b2e;
+  --accent: #c45d2e;
+  --accent-hover: #a84d26;
+  --accent-soft: #e8a88a;
+  --secondary: #2d6a6a;
+  --secondary-hover: #245555;
+  --tertiary: #7c5cbf;
+  --card: #ffffff;
+  --muted: #5c5468;
+  --border: #e4dfea;
+  --success: #2d8a5e;
+  --info: #3b7dd6;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/* Colorful pet-themed background */
+.pet-bg {
+  background: linear-gradient(160deg, #f8f6fc 0%, #f0ecf8 30%, #fdf4ed 70%, #f0f6f4 100%);
+  min-height: 100vh;
+}
+
+.pet-bg-pattern {
+  background-color: #f8f6fc;
+  background-image:
+    radial-gradient(circle at 15% 85%, rgba(196, 93, 46, 0.08) 0%, transparent 45%),
+    radial-gradient(circle at 85% 15%, rgba(45, 106, 106, 0.08) 0%, transparent 45%),
+    radial-gradient(circle at 50% 50%, rgba(124, 92, 191, 0.05) 0%, transparent 50%);
+  background-size: 100% 100%;
+  min-height: 100vh;
+}
+
+/* Colorful card accents */
+.card-accent-1 { border-left: 4px solid var(--accent); }
+.card-accent-2 { border-left: 4px solid var(--secondary); }
+.card-accent-3 { border-left: 4px solid var(--tertiary); }
