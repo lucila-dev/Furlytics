@@ -32,8 +32,8 @@ export function HeroBanner({ title, subtitle, ctas, breakout = false }: HeroBann
     <section
       className={
         breakout
-          ? "relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen h-[320px] overflow-hidden text-center sm:h-[400px]"
-          : "relative h-[320px] overflow-hidden text-center sm:h-[400px]"
+          ? "relative -mx-4 h-[320px] overflow-hidden text-center sm:mx-0 sm:h-[400px] sm:rounded-[2.5rem]"
+          : "relative h-[320px] overflow-hidden text-center sm:h-[400px] sm:rounded-[2.5rem]"
       }
     >
       <div

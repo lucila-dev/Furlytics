@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { getVerifiedSession } from "@/lib/session";
 import { AppHeader } from "@/components/AppHeader";
 import { AuthOriginBanner } from "@/components/AuthOriginBanner";
-import { QuickChat } from "@/components/QuickChat";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +14,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen pet-bg">
       <AuthOriginBanner />
-      <QuickChat />
       <AppHeader />
       <main className="mx-auto max-w-6xl px-4 sm:px-6 py-8 min-h-[60vh]">{children}</main>
       <footer className="border-t border-[var(--border)]/60 bg-transparent py-4">
