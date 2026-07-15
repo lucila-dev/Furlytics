@@ -4,6 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { addPet } from "@/lib/petStorage";
+import {
+  ANIMAL_OPTIONS,
+  getBreedOptions,
+  resolveBreed,
+} from "@/lib/breeds";
 
 export default function NewPetPage() {
   const router = useRouter();
@@ -11,6 +16,7 @@ export default function NewPetPage() {
   const [animalType, setAnimalType] = useState("");
   const [animalTypeOther, setAnimalTypeOther] = useState("");
   const [breed, setBreed] = useState("");
+  const [breedOther, setBreedOther] = useState("");
   const [age, setAge] = useState("");
   const [weight, setWeight] = useState("");
   const [knownConditions, setKnownConditions] = useState("");
@@ -19,16 +25,23 @@ export default function NewPetPage() {
   const [lastVaccinationDate, setLastVaccinationDate] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const ANIMAL_OPTIONS = ["Dog", "Cat", "Rabbit", "Bird", "Hamster", "Guinea pig", "Other"];
+  const breedOptions = getBreedOptions(animalType);
+
+  function handleAnimalTypeChange(value: string) {
+    setAnimalType(value);
+    setBreed("");
+    setBreedOther("");
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const resolvedAnimalType = animalType === "Other" ? (animalTypeOther.trim() || null) : (animalType || null);
+    const resolvedAnimalType =
+      animalType === "Other" ? animalTypeOther.trim() || null : animalType || null;
     addPet({
       name,
       animalType: resolvedAnimalType,
-      breed: breed || null,
+      breed: resolveBreed(breed, breedOther),
       age: age ? parseInt(age, 10) : null,
       weight: weight ? parseFloat(weight) : null,
       knownConditions: knownConditions || null,
@@ -62,12 +75,14 @@ export default function NewPetPage() {
           <label className="block text-sm font-medium text-[var(--foreground)]">Type of animal</label>
           <select
             value={animalType}
-            onChange={(e) => setAnimalType(e.target.value)}
+            onChange={(e) => handleAnimalTypeChange(e.target.value)}
             className="mt-1 block w-full rounded-xl border border-[var(--border)] px-3 py-2.5 text-[var(--foreground)] shadow-sm focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20"
           >
             <option value="">Select type</option>
             {ANIMAL_OPTIONS.map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
             ))}
           </select>
           {animalType === "Other" && (
@@ -82,12 +97,30 @@ export default function NewPetPage() {
         </div>
         <div>
           <label className="block text-sm font-medium text-[var(--foreground)]">Breed</label>
-          <input
-            type="text"
+          <select
             value={breed}
-            onChange={(e) => setBreed(e.target.value)}
+            onChange={(e) => {
+              setBreed(e.target.value);
+              if (e.target.value !== "Other") setBreedOther("");
+            }}
             className="mt-1 block w-full rounded-xl border border-[var(--border)] px-3 py-2.5 text-[var(--foreground)] shadow-sm focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20"
-          />
+          >
+            <option value="">Select breed</option>
+            {breedOptions.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+          {breed === "Other" && (
+            <input
+              type="text"
+              value={breedOther}
+              onChange={(e) => setBreedOther(e.target.value)}
+              placeholder="Specify breed"
+              className="mt-2 block w-full rounded-xl border border-[var(--border)] px-3 py-2.5 text-[var(--foreground)] shadow-sm focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20"
+            />
+          )}
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
@@ -144,7 +177,9 @@ export default function NewPetPage() {
           </label>
           {vaccinated && (
             <div className="mt-2">
-              <label className="block text-sm font-medium text-[var(--foreground)]">Last vaccination date</label>
+              <label className="block text-sm font-medium text-[var(--foreground)]">
+                Last vaccination date
+              </label>
               <input
                 type="date"
                 value={lastVaccinationDate}

@@ -4,8 +4,12 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { getPetById, updatePet } from "@/lib/petStorage";
-
-const ANIMAL_OPTIONS = ["Dog", "Cat", "Rabbit", "Bird", "Hamster", "Guinea pig", "Other"];
+import {
+  ANIMAL_OPTIONS,
+  getBreedOptions,
+  resolveBreed,
+  splitBreed,
+} from "@/lib/breeds";
 
 export default function EditPetPage() {
   const params = useParams();
@@ -16,6 +20,7 @@ export default function EditPetPage() {
   const [animalType, setAnimalType] = useState("");
   const [animalTypeOther, setAnimalTypeOther] = useState("");
   const [breed, setBreed] = useState("");
+  const [breedOther, setBreedOther] = useState("");
   const [age, setAge] = useState("");
   const [weight, setWeight] = useState("");
   const [knownConditions, setKnownConditions] = useState("");
@@ -24,15 +29,23 @@ export default function EditPetPage() {
   const [lastVaccinationDate, setLastVaccinationDate] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const breedOptions = getBreedOptions(animalType);
+
   useEffect(() => {
     const p = getPetById(id);
     setPet(p ?? null);
     if (p) {
       setName(p.name);
-      const isOther = p.animalType && !ANIMAL_OPTIONS.slice(0, -1).includes(p.animalType);
-      setAnimalType(isOther ? "Other" : (p.animalType ?? ""));
-      setAnimalTypeOther(isOther && p.animalType ? p.animalType : "");
-      setBreed(p.breed ?? "");
+      const knownTypes = ANIMAL_OPTIONS.filter((o) => o !== "Other");
+      const isOtherAnimal = Boolean(
+        p.animalType && !(knownTypes as readonly string[]).includes(p.animalType)
+      );
+      const typeForBreeds = isOtherAnimal ? "Other" : p.animalType ?? "";
+      setAnimalType(isOtherAnimal ? "Other" : typeForBreeds);
+      setAnimalTypeOther(isOtherAnimal && p.animalType ? p.animalType : "");
+      const { selected, custom } = splitBreed(typeForBreeds, p.breed);
+      setBreed(selected);
+      setBreedOther(custom);
       setAge(p.age != null ? String(p.age) : "");
       setWeight(p.weight != null ? String(p.weight) : "");
       setKnownConditions(p.knownConditions ?? "");
@@ -42,15 +55,22 @@ export default function EditPetPage() {
     }
   }, [id]);
 
+  function handleAnimalTypeChange(value: string) {
+    setAnimalType(value);
+    setBreed("");
+    setBreedOther("");
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!pet) return;
     setLoading(true);
-    const resolvedAnimalType = animalType === "Other" ? (animalTypeOther.trim() || null) : (animalType || null);
+    const resolvedAnimalType =
+      animalType === "Other" ? animalTypeOther.trim() || null : animalType || null;
     updatePet(pet.id, {
       name,
       animalType: resolvedAnimalType,
-      breed: breed || null,
+      breed: resolveBreed(breed, breedOther),
       age: age ? parseInt(age, 10) : null,
       weight: weight ? parseFloat(weight) : null,
       knownConditions: knownConditions || null,
@@ -96,12 +116,14 @@ export default function EditPetPage() {
           <label className="block text-sm font-medium text-[var(--foreground)]">Type of animal</label>
           <select
             value={animalType}
-            onChange={(e) => setAnimalType(e.target.value)}
+            onChange={(e) => handleAnimalTypeChange(e.target.value)}
             className="mt-1 block w-full rounded-xl border border-[var(--border)] px-3 py-2.5 text-[var(--foreground)] shadow-sm focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20"
           >
             <option value="">Select type</option>
             {ANIMAL_OPTIONS.map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
             ))}
           </select>
           {animalType === "Other" && (
@@ -116,12 +138,30 @@ export default function EditPetPage() {
         </div>
         <div>
           <label className="block text-sm font-medium text-[var(--foreground)]">Breed</label>
-          <input
-            type="text"
+          <select
             value={breed}
-            onChange={(e) => setBreed(e.target.value)}
+            onChange={(e) => {
+              setBreed(e.target.value);
+              if (e.target.value !== "Other") setBreedOther("");
+            }}
             className="mt-1 block w-full rounded-xl border border-[var(--border)] px-3 py-2.5 text-[var(--foreground)] shadow-sm focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20"
-          />
+          >
+            <option value="">Select breed</option>
+            {breedOptions.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+          {breed === "Other" && (
+            <input
+              type="text"
+              value={breedOther}
+              onChange={(e) => setBreedOther(e.target.value)}
+              placeholder="Specify breed"
+              className="mt-2 block w-full rounded-xl border border-[var(--border)] px-3 py-2.5 text-[var(--foreground)] shadow-sm focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20"
+            />
+          )}
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
@@ -178,7 +218,9 @@ export default function EditPetPage() {
           </label>
           {vaccinated && (
             <div className="mt-2">
-              <label className="block text-sm font-medium text-[var(--foreground)]">Last vaccination date</label>
+              <label className="block text-sm font-medium text-[var(--foreground)]">
+                Last vaccination date
+              </label>
               <input
                 type="date"
                 value={lastVaccinationDate}
