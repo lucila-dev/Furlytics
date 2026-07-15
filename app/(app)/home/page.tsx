@@ -72,7 +72,7 @@ export default function AppHomePage() {
             <span className="text-2xl" aria-hidden>💬</span>
             <h3 className="mt-3 font-semibold text-[var(--tertiary)]">Quick chat</h3>
             <p className="mt-1 text-sm text-[var(--muted)]">
-              Tap the chat button at the bottom right anytime — Lulu can help with quick pet questions in a friendly way.
+              Use the chat button at the bottom right for quick questions about your pet.
             </p>
           </li>
         </ul>
@@ -122,7 +122,7 @@ export default function AppHomePage() {
             <div>
               <h3 className="font-semibold text-[var(--foreground)]">Quick questions</h3>
               <p className="mt-1 text-sm text-[var(--muted)]">
-                Open the chat icon at the bottom right to ask Lulu anything about your pet — quick, clear, and pressure-free.
+                Open the chat icon at the bottom right to ask quick questions about your pet.
               </p>
             </div>
           </li>
