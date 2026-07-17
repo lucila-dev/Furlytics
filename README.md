@@ -1,70 +1,22 @@
 # Furlytics
 
-Pet Behaviour & Health Intelligence Platform. Log incidents, detect patterns, get structured AI insights, and prepare summaries for vets.
+Furlytics is a pet behaviour and health tracking web app. Pet owners log incidents (symptoms, behaviour, and accidents), spot patterns over time, and generate clear, vet-ready summaries — so they can walk into an appointment with the full picture.
+
+## What it does
+
+- **Pets** – Keep a profile for each pet with name, animal type, breed, age, weight, microchip, vaccination info, and known conditions.
+- **Incidents** – Log symptoms, behaviour changes, or accidents with optional signs (vomiting, lethargy, anxiety, and more) and notes, timestamped per pet.
+- **AI insights** – Turn an incident into a structured report: summary, potential causes, possible conditions, monitoring advice, urgency, and when to see a vet.
+- **Patterns** – See recurring symptoms and a symptom overview over recent weeks.
+- **Dashboard** – A single place for your pets, recent incidents, recent reports, and spotted patterns.
+- **Quick chat** – A friendly assistant for quick questions about your pet.
+- **Accounts** – Sign in with email and password (email verification required); your pets and incidents are tied to your account and sync across devices.
 
 ## Stack
 
-- **Next.js** (App Router) + TypeScript
-- **PostgreSQL** (Neon) + Prisma
-- **Neon Auth** (email + password, email verification required)
-- **OpenAI** (single controlled call for insights)
-- **Tailwind CSS**
-
-## Setup
-
-1. **Clone and install**
-
-   ```bash
-   npm install
-   ```
-
-2. **Neon**
-
-   - Create a Neon project and copy `DATABASE_URL`
-   - In Neon Console → **Auth** → **Enable Auth**
-   - Enable **Sign-up with Email** and **Verify at Sign-up** (verification **codes**)
-   - Copy **Auth URL** as `NEON_AUTH_BASE_URL`
-   - Add your site domain under Auth trusted domains (e.g. `localhost:3000`, your Vercel URL)
-
-3. **Environment**
-
-   Copy `.env.example` to `.env` and set:
-
-   - `DATABASE_URL` – Neon Postgres connection string
-   - `NEON_AUTH_BASE_URL` – from Neon Auth configuration
-   - `NEON_AUTH_COOKIE_SECRET` – e.g. `openssl rand -base64 32`
-   - `OPENAI_API_KEY` – for “Generate Insight” (optional for local; insight API returns 503 if missing)
-
-4. **Database**
-
-   ```bash
-   npx prisma migrate deploy
-   npx prisma generate
-   ```
-
-5. **Run**
-
-   ```bash
-   npm run dev
-   ```
-
-   Open [http://localhost:3000](http://localhost:3000). Register, verify the email code, then use the app.
-
-## Deploy (Vercel)
-
-1. Connect the repo to Vercel.
-2. Set environment variables: `DATABASE_URL`, `NEON_AUTH_BASE_URL`, `NEON_AUTH_COOKIE_SECRET`, `OPENAI_API_KEY`.
-3. In **Neon → Auth → Configuration → Domains**, add both (with `https://`, no trailing slash):
-   - `https://furlytics.vercel.app`
-   - `https://furlytics-kappa.vercel.app`
-4. Always open the app at [https://furlytics.vercel.app](https://furlytics.vercel.app) (not preview/hash URLs — those redirect automatically).
-5. Build runs `prisma migrate deploy`, then `prisma generate`, then `next build`.
-
-## Features
-
-- **Auth**: Register / login via Neon Auth; email must be verified (OTP) before access.
-- **Pets**: List and view pets.
-- **Incidents**: Log symptoms/behaviour with optional flags (vomiting, lethargy, etc.); timeline per pet with severity (green/amber/red).
-- **AI Insight**: On “Generate Insight”, one OpenAI call returns structured JSON (category, urgency, causes, advice, vet questions); stored in DB and shown in a card layout.
-- **Patterns**: Recurring symptom detection (e.g. 3+ same symptom in 7 days), escalation detection, time-of-day summary, symptom heatmap by week.
-- **Dashboard**: Pet cards, pattern alerts, recent incidents, 6-week symptom overview.
+- **Next.js** (App Router) + **TypeScript**
+- **React** + **Tailwind CSS**
+- **PostgreSQL** (Neon) + **Prisma**
+- **Neon Auth** (email/password with email verification)
+- **OpenAI** (AI reports and chat)
+- Deployed on **Vercel**
